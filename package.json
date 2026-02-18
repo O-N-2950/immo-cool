@@ -1,0 +1,16 @@
+{
+  "name": "immo-cool",
+  "version": "1.0.0",
+  "description": "immo.cool — La plateforme immobilière 100% gratuite pour les locataires",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start -p ${PORT:-3000}"
+  },
+  "dependencies": {
+    "next": "^15.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}
