@@ -1,48 +1,6 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-html, body {
-  background: #0C0B09;
-  color: #E8E4DC;
-  overflow-x: hidden;
-}
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.8; }
-}
-
-@keyframes slideIn {
-  from { opacity: 0; transform: translateX(-20px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
-::selection {
-  background: rgba(200, 165, 92, 0.3);
-  color: #E8E4DC;
-}
-
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: #0C0B09;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #2A2520;
-  border-radius: 0;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #3A3530;
-}
+/* immo.cool — Global Reset */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+body { background: #070809; color: #F2F0ED; font-family: 'DM Sans', sans-serif; overflow-x: hidden; }
+::selection { background: #C8A55C; color: #070809; }
+a { text-decoration: none; color: inherit; }

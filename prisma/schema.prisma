@@ -1,0 +1,423 @@
+// immo.cool — Prisma Schema
+// PostgreSQL on Railway
+// Plan B: 50% landlord, FREE tenant, 10% artisan
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USERS & AUTH
+// ============================================
+
+enum UserRole {
+  LANDLORD
+  TENANT
+  ARTISAN
+  ADMIN
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+}
+
+model User {
+  id            String     @id @default(cuid())
+  email         String     @unique
+  passwordHash  String
+  role          UserRole
+  status        UserStatus @default(PENDING)
+  
+  // Profile
+  firstName     String
+  lastName      String
+  phone         String?
+  avatarUrl     String?
+  
+  // Swiss specifics
+  nationality   String?
+  permitType    String?    // B, C, L, G, etc.
+  birthDate     DateTime?
+  
+  // Stripe Connect (for landlords & artisans)
+  stripeCustomerId  String?
+  stripeConnectId   String?
+  stripeOnboarded   Boolean @default(false)
+  
+  // Relations
+  properties    Property[]
+  tenantProfile TenantProfile?
+  artisanProfile ArtisanProfile?
+  sentMessages  Message[]  @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+  
+  // Landlord-specific
+  leasesAsLandlord Lease[] @relation("LandlordLeases")
+  
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@index([email])
+  @@index([role])
+}
+
+// ============================================
+// TENANT PROFILE (scoring & matching)
+// ============================================
+
+model TenantProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id])
+  
+  // Financial
+  monthlyIncome   Decimal?
+  employmentType  String?  // CDI, CDD, independent, student, retired
+  employer        String?
+  
+  // Search criteria
+  maxBudget       Decimal?
+  minRooms        Float?
+  maxRooms        Float?
+  preferredCantons String[] // ["JU", "VD", "NE"]
+  preferredCities String[]
+  moveInDate      DateTime?
+  
+  // Verification
+  incomeVerified  Boolean  @default(false)
+  identityVerified Boolean @default(false)
+  referencesVerified Boolean @default(false)
+  
+  // Scoring (0-100)
+  score           Int      @default(0)
+  
+  // Relations
+  applications    Application[]
+  leases          Lease[]  @relation("TenantLeases")
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ============================================
+// ARTISAN PROFILE
+// ============================================
+
+enum ArtisanSpecialty {
+  PLOMBERIE
+  ELECTRICITE
+  PEINTURE
+  SERRURERIE
+  MENUISERIE
+  CHAUFFAGE
+  NETTOYAGE
+  DEMENAGEMENT
+  JARDINAGE
+  GENERAL
+}
+
+model ArtisanProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id])
+  
+  companyName     String?
+  specialties     ArtisanSpecialty[]
+  cantons         String[] // zones de couverture
+  description     String?
+  
+  // Ratings
+  avgRating       Float    @default(0)
+  totalReviews    Int      @default(0)
+  
+  // Business
+  hourlyRate      Decimal?
+  available       Boolean  @default(true)
+  
+  // Relations
+  interventions   Intervention[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ============================================
+// PROPERTIES
+// ============================================
+
+enum PropertyType {
+  APARTMENT
+  HOUSE
+  STUDIO
+  COMMERCIAL
+  PARKING
+  STORAGE
+}
+
+enum PropertyStatus {
+  DRAFT
+  ACTIVE
+  RENTED
+  ARCHIVED
+}
+
+model Property {
+  id              String         @id @default(cuid())
+  ownerId         String
+  owner           User           @relation(fields: [ownerId], references: [id])
+  
+  // Details
+  type            PropertyType
+  status          PropertyStatus @default(DRAFT)
+  title           String
+  description     String?
+  
+  // Location
+  street          String
+  streetNumber    String?
+  postalCode      String
+  city            String
+  canton          String         // "JU", "VD", etc.
+  floor           Int?
+  
+  // Specs
+  rooms           Float          // 3.5, 4.5, etc.
+  surface         Float?         // m²
+  balcony         Boolean        @default(false)
+  parking         Boolean        @default(false)
+  elevator        Boolean        @default(false)
+  laundry         Boolean        @default(false)
+  dishwasher      Boolean        @default(false)
+  
+  // Financial
+  monthlyRent     Decimal
+  charges         Decimal        @default(0)
+  deposit          Int            @default(3) // months of guarantee
+  
+  // Media
+  images          String[]
+  
+  // Dates
+  availableFrom   DateTime
+  
+  // Building info (for rent calculator)
+  buildingYear    Int?
+  lastRenovation  Int?
+  previousRent    Decimal?       // for official form
+  previousRentDate DateTime?
+  
+  // Relations
+  applications    Application[]
+  leases          Lease[]
+  interventions   Intervention[]
+  
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([canton, status])
+  @@index([city, status])
+  @@index([monthlyRent])
+  @@index([rooms])
+}
+
+// ============================================
+// APPLICATIONS (matching)
+// ============================================
+
+enum ApplicationStatus {
+  PENDING
+  SHORTLISTED
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
+model Application {
+  id              String            @id @default(cuid())
+  propertyId      String
+  property        Property          @relation(fields: [propertyId], references: [id])
+  tenantProfileId String
+  tenantProfile   TenantProfile     @relation(fields: [tenantProfileId], references: [id])
+  
+  status          ApplicationStatus @default(PENDING)
+  matchScore      Int               @default(0) // 0-100
+  
+  // Tenant's message
+  message         String?
+  
+  // Landlord response
+  landlordNote    String?
+  
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@unique([propertyId, tenantProfileId])
+  @@index([propertyId, status])
+}
+
+// ============================================
+// LEASES
+// ============================================
+
+enum LeaseStatus {
+  DRAFT
+  PENDING_SIGNATURE
+  PENDING_PAYMENT
+  ACTIVE
+  TERMINATED
+  EXPIRED
+}
+
+model Lease {
+  id              String      @id @default(cuid())
+  propertyId      String
+  property        Property    @relation(fields: [propertyId], references: [id])
+  landlordId      String
+  landlord        User        @relation("LandlordLeases", fields: [landlordId], references: [id])
+  tenantProfileId String
+  tenant          TenantProfile @relation("TenantLeases", fields: [tenantProfileId], references: [id])
+  
+  status          LeaseStatus @default(DRAFT)
+  
+  // Terms
+  startDate       DateTime
+  endDate         DateTime?   // null = indefinite
+  monthlyRent     Decimal
+  charges         Decimal     @default(0)
+  depositMonths   Int         @default(3)
+  
+  // Cantonal compliance
+  canton          String
+  officialFormGenerated Boolean @default(false)
+  initialRentFormSent   Boolean @default(false)
+  
+  // Reference rates at time of lease
+  referenceRate   Float?      // taux hypothécaire
+  cpiIndex        Float?      // indice prix consommation
+  
+  // Signatures
+  landlordSignedAt DateTime?
+  tenantSignedAt   DateTime?
+  
+  // Payment
+  commissionAmount Decimal?
+  commissionPaid   Boolean    @default(false)
+  stripePaymentId  String?
+  
+  // État des lieux
+  etatLieuxEntree  Json?
+  etatLieuxSortie  Json?
+  
+  // Documents
+  leaseDocumentUrl String?
+  
+  // Termination
+  terminationDate  DateTime?
+  terminationBy    String?    // "landlord" or "tenant"
+  terminationReason String?
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([landlordId, status])
+  @@index([tenantProfileId, status])
+  @@index([canton])
+}
+
+// ============================================
+// ARTISAN INTERVENTIONS
+// ============================================
+
+enum InterventionStatus {
+  REQUESTED
+  QUOTED
+  ACCEPTED
+  IN_PROGRESS
+  COMPLETED
+  PAID
+  CANCELLED
+}
+
+model Intervention {
+  id              String             @id @default(cuid())
+  propertyId      String
+  property        Property           @relation(fields: [propertyId], references: [id])
+  artisanProfileId String
+  artisan         ArtisanProfile     @relation(fields: [artisanProfileId], references: [id])
+  
+  status          InterventionStatus @default(REQUESTED)
+  specialty       ArtisanSpecialty
+  description     String
+  urgency         String             @default("normal") // normal, urgent, emergency
+  
+  // Financial
+  quotedAmount    Decimal?
+  finalAmount     Decimal?
+  platformFee     Decimal?           // 10%
+  stripePaymentId String?
+  
+  // Scheduling
+  scheduledDate   DateTime?
+  completedDate   DateTime?
+  
+  // Rating
+  rating          Int?               // 1-5
+  review          String?
+  
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@index([propertyId, status])
+  @@index([artisanProfileId, status])
+}
+
+// ============================================
+// MESSAGING
+// ============================================
+
+model Message {
+  id          String   @id @default(cuid())
+  senderId    String
+  sender      User     @relation("SentMessages", fields: [senderId], references: [id])
+  receiverId  String
+  receiver    User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  
+  content     String
+  read        Boolean  @default(false)
+  
+  // Context
+  propertyId  String?
+  leaseId     String?
+  
+  createdAt   DateTime @default(now())
+
+  @@index([receiverId, read])
+  @@index([senderId])
+}
+
+// ============================================
+// AUDIT LOG
+// ============================================
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  action      String   // "lease.created", "payment.received", etc.
+  entityType  String   // "Property", "Lease", etc.
+  entityId    String
+  details     Json?
+  ipAddress   String?
+  
+  createdAt   DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([createdAt])
+}
