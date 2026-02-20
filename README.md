@@ -7,7 +7,7 @@
 ## 🚀 Live
 
 - **Production**: https://immo-cool-production.up.railway.app
-- **Custom domain**: https://immo.cool (DNS pending)
+- **Custom domain**: https://www.immocool.ch
 
 ## 🏗️ Architecture
 

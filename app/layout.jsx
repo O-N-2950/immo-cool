@@ -7,7 +7,7 @@ export const metadata = {
   openGraph: {
     title: 'immo.cool — L\'immobilier suisse, réinventé',
     description: '100% gratuit pour les locataires. 50% moins cher qu\'une régie pour les propriétaires.',
-    url: 'https://immo.cool',
+    url: 'https://www.immocool.ch',
     siteName: 'immo.cool',
     type: 'website',
     locale: 'fr_CH',
