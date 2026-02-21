@@ -23,27 +23,7 @@ import {
   calculateIPCAdjustment,
 } from '@/lib/legal-references';
 
-// En attendant Prisma en production, on utilise un store en mémoire
-// qui sera remplacé par prisma quand la DB sera connectée
-let memoryStore = {};
-
-const mockPrisma = {
-  legalReference: {
-    findUnique: async ({ where }) => memoryStore[where.key] || null,
-    upsert: async ({ where, update, create }) => {
-      const data = memoryStore[where.key]
-        ? { ...memoryStore[where.key], ...update, updatedAt: new Date() }
-        : { ...create, id: `lr_${Date.now()}`, createdAt: new Date(), updatedAt: new Date() };
-      memoryStore[where.key] = data;
-      return data;
-    },
-  },
-};
-
-// TODO: Remplacer par le vrai client Prisma quand la DB sera connectée
-// import { PrismaClient } from '@prisma/client';
-// const prisma = new PrismaClient();
-const prisma = mockPrisma;
+import { prisma } from '@/lib/prisma';
 
 // ============================================================
 // GET /api/legal-references
