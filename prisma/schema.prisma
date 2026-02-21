@@ -421,3 +421,19 @@ model AuditLog {
   @@index([userId])
   @@index([createdAt])
 }
+
+// ============================================================
+// RÉFÉRENCES LÉGALES — Taux hypothécaire de référence + IPC
+// Valeurs obligatoires pour tout bail (OBLF art. 19 al. 1)
+// ============================================================
+model LegalReference {
+  id        String   @id @default(cuid())
+  key       String   @unique                  // 'taux_reference' | 'ipc'
+  value     Float                             // Valeur numérique (ex: 1.25, 99.9)
+  metadata  String?  @db.Text                 // JSON: date_effective, base, month, source, etc.
+  updatedBy String?                           // 'system-autofetch' | 'admin@email.com'
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+}
