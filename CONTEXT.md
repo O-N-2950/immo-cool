@@ -1,22 +1,31 @@
 # 🗂️ CONTEXT.md — www.immocool.ch
 > Dernière mise à jour : 21 février 2026
-> Coller en début de chaque nouvelle conversation dans le projet "www.immo.cool"
+> Ce fichier est à coller en début de chaque nouvelle conversation dans le projet "www.immocool.ch"
 
 ---
 
-## 🎯 VUE D'ENSEMBLE
+## 🎯 VUE D'ENSEMBLE DU PROJET
 
-**immocool.ch** = Plateforme immobilière suisse 100% automatisée.
-- Gratuit pour les locataires
-- Propriétaires : 50% du 1er loyer
-- Artisans : commission 10%
-- Hébergement suisse, conforme RGPD
+**immocool.ch** = Plateforme immobilière suisse 100% automatisée, du début à la fin sans intervention humaine — sauf pour les états des lieux d'entrée et sortie (propriétaire présent obligatoire).
+
+**Slogan :** "50% moins cher qu'une régie — et gratuit pour les locataires."
 
 - **Repo GitHub :** https://github.com/O-N-2950/immo-cool
 - **URL Production :** https://www.immocool.ch
-- **Railway URL :** https://immo-cool-production.up.railway.app
-- **Hébergement :** Railway (europe-west4)
-- **CI/CD :** GitHub → Railway auto-deploy
+- **URL Railway :** https://immo-cool-production.up.railway.app
+- **Hébergement :** Railway (europe-west4) + auto-deploy GitHub
+
+---
+
+## 💰 MODÈLE ÉCONOMIQUE (Plan B)
+
+| Rôle | Prix |
+|------|------|
+| Locataire | **GRATUIT** (recherche, matching, bail, 26 cantons) |
+| Propriétaire | **50% du 1er loyer** (commission unique) |
+| Artisan | **10%** sur chaque intervention |
+
+Paiements via **Stripe Connect** — propriétaires et artisans s'onboardent sur Stripe directement.
 
 ---
 
@@ -25,28 +34,50 @@
 | Couche | Tech | Détail |
 |--------|------|--------|
 | Framework | Next.js 15 (App Router) | React 19 |
-| UI | React 19 + design custom | Playfair Display + DM Sans + JetBrains Mono |
+| UI | Custom design system | Playfair Display + DM Sans + JetBrains Mono |
 | Base de données | PostgreSQL + Prisma 5 | Railway managed |
 | Auth | JWT + bcrypt | next-auth v5 beta |
-| Paiements | Stripe Connect | Commission auto |
-| Deploy | Railway | europe-west4 |
+| Paiements | Stripe Connect | Webhooks avec filtre metadata |
+| Deploy | Railway | CI/CD automatique via GitHub |
 
 ---
 
-## 🗄️ MODÈLES DE DONNÉES (Prisma)
+## 🗄️ SCHÉMA BASE DE DONNÉES (Prisma)
 
-**Utilisateurs & Rôles :** `LANDLORD` / `TENANT` / `ARTISAN` / `ADMIN`
+### Utilisateurs & Auth
+- **User** : email, passwordHash, role (LANDLORD/TENANT/ARTISAN/ADMIN), status (PENDING/ACTIVE/SUSPENDED), profil complet, nationalité, type de permis suisse (B/C/L/G), stripeCustomerId, stripeConnectId
+- **TenantProfile** : revenus, type emploi, critères recherche (budget, cantons préférés, pièces, date déménagement), score 0-100, vérifications (revenus, identité, références)
+- **ArtisanProfile** : companyName, spécialités (PLOMBERIE/ELECTRICITE/PEINTURE/SERRURERIE/MENUISERIE/CHAUFFAGE/NETTOYAGE/DEMENAGEMENT/JARDINAGE/GENERAL), cantons couverts, tarif horaire, note moyenne
 
-- **User** : email, role, profil, adresse, `stripeCustomerId`, `stripeConnectId`
-- **TenantProfile** : revenus, critères de recherche, score matching (0-100), cantons préférés
-- **ArtisanProfile** : spécialités (10 types), cantons couverts, tarif horaire, rating
-- **Property** : type (APARTMENT/HOUSE/STUDIO/COMMERCIAL/PARKING/STORAGE), localisation, specs, `monthlyRent`, images[], `availableFrom`, `previousRent`
-- **Application** : candidature avec `matchScore` (0-100), statut (PENDING→ACCEPTED/REJECTED)
-- **Lease** : bail complet, compliance cantonale, signatures, `etatLieuxEntree/Sortie` (Json), `commissionAmount`
-- **Intervention** : artisan → bien, devis, paiement, rating
-- **Message** : messaging entre utilisateurs
-- **LegalReference** : taux hypothécaire de référence + IPC (auto-fetch)
-- **AuditLog** : traçabilité complète
+### Biens & Processus
+- **Property** : type (APARTMENT/HOUSE/STUDIO/COMMERCIAL/PARKING/STORAGE), statut (DRAFT/ACTIVE/RENTED/ARCHIVED), localisation complète + canton, caractéristiques (pièces, m², balcon, parking...), loyer + charges + dépôt, images[], loyer précédent (formulaire officiel)
+- **Application** : candidature locataire ↔ bien, score matching 0-100, statut (PENDING/SHORTLISTED/ACCEPTED/REJECTED/WITHDRAWN)
+- **Lease** : bail complet avec conformité cantonale, signatures électroniques, taux hypothécaire + IPC au moment du bail, état des lieux entrée/sortie (JSON), commission Stripe
+- **Intervention** : demande artisan, statut (REQUESTED→COMPLETED→PAID), devis, montant final, commission 10%, rating 1-5
+
+### Système
+- **Message** : messagerie propriétaire ↔ locataire (contexte bien/bail)
+- **AuditLog** : traçabilité complète de toutes les actions
+- **LegalReference** : taux hypothécaire de référence (1.25%) + IPC — auto-fetch système
+
+---
+
+## 📡 API ROUTES (Next.js App Router)
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /api/cantonal?canton=JU` | Règles cantonales (26 cantons) |
+| `GET /api/properties?canton=VD` | Liste des biens |
+| `GET /api/matching?propertyId=x` | Score matching locataires (0-100) |
+| `POST /api/auth/register` | Inscription |
+| `POST /api/auth/login` | Connexion JWT |
+| `POST /api/leases` | Création de bail conforme |
+| `GET /api/legal-references` | Taux hypothécaire + IPC |
+| `GET /api/documents` | Génération de documents PDF |
+| `POST /api/stripe/checkout` | Paiement commission propriétaire |
+| `POST /api/stripe/connect` | Onboarding Stripe Connect |
+| `POST /api/stripe/webhook` | Webhooks Stripe (filtre metadata) |
+| `GET /api/health` | Health check Railway |
 
 ---
 
@@ -54,57 +85,46 @@
 
 ### Moteur de règles cantonales (26 cantons)
 - Dates de résiliation officielles par canton
-- Formulaire de loyer initial obligatoire (OBLF art. 19)
-- Validation de conformité automatique
-- Taux hypothécaire de référence : 1.25% (auto-mis à jour)
-- IPC intégré
+- Formulaire de loyer initial obligatoire (OBLF art. 19 al. 1)
+- Taux hypothécaire de référence : 1.25% (auto-fetch + stocké en BDD)
+- IPC auto-fetch + stocké en BDD
+- Validation conformité automatique
 
-### Matching intelligent
-- Score de compatibilité 0-100
-- Budget + localisation + timing + profil locataire
-- Classement automatique des candidatures
-
-### Stripe Connect
-- Onboarding propriétaires et artisans
-- Commission propriétaire : 50% du 1er loyer
-- Commission artisan : 10%
-- Webhook : `jvais.cool/api/webhooks/stripe`
-- ⚠️ Partage Stripe avec PEP's V2 → filtre par metadata
+### Documents générés automatiquement
+- Bail à loyer conforme au canton
+- État des lieux entrée + sortie (JSON stocké, présence humaine requise)
+- Quittance de clés
+- Aide à la résiliation
 
 ---
 
-## 📡 API ROUTES PRINCIPALES
-
-| Endpoint | Description |
-|----------|-------------|
-| `GET /api/cantonal?canton=JU` | Règles cantonales |
-| `GET /api/properties?canton=VD` | Liste des biens |
-| `GET /api/matching?propertyId=x` | Matching locataires |
-| `POST /api/auth/register` | Inscription |
-| `POST /api/auth/login` | Connexion |
-| `POST /api/leases` | Création bail |
-| `POST /api/stripe/checkout` | Paiement commission |
-| `POST /api/stripe/connect` | Onboarding Stripe |
-
----
-
-## 📁 STRUCTURE DU PROJET
+## 📁 STRUCTURE DU REPO
 
 ```
 immo-cool/
 ├── app/
-│   ├── layout.jsx           # Layout principal
-│   ├── page.jsx             # Page d'accueil
-│   └── globals.css
+│   ├── api/                    # API Routes Next.js
+│   │   ├── auth/               # login, register
+│   │   ├── cantonal/           # 26 cantons
+│   │   ├── documents/          # Génération PDF
+│   │   ├── leases/             # CRUD baux
+│   │   ├── legal-references/   # Taux & IPC
+│   │   ├── matching/           # Score matching
+│   │   ├── properties/         # CRUD biens
+│   │   └── stripe/             # checkout, connect, webhook
+│   ├── components/ImmoCool.jsx # Composant principal
+│   ├── globals.css
+│   ├── layout.jsx
+│   └── page.jsx
 ├── lib/
-│   ├── auth.js              # JWT + bcrypt
-│   ├── cantonal-rules.js    # Règles 26 cantons
-│   ├── legal-references.js  # Taux hypothécaire + IPC
-│   ├── matching.js          # Algorithme de matching
-│   ├── prisma.js            # Client Prisma
-│   └── stripe.js            # Stripe Connect
-├── prisma/
-│   └── schema.prisma        # Schéma complet BDD
+│   ├── auth.js
+│   ├── cantonal-rules.js
+│   ├── documents/              # bail, état des lieux, quittance, résiliation, PDF
+│   ├── legal-references.js
+│   ├── matching.js
+│   ├── prisma.js
+│   └── stripe.js
+├── prisma/schema.prisma
 ├── docs/
 │   ├── DEPLOY-GUIDE.md
 │   └── Réglementation_Bail_Suisse_par_Canton.md
@@ -113,29 +133,32 @@ immo-cool/
 
 ---
 
-## 🔑 VARIABLES D'ENVIRONNEMENT (Railway)
+## ⚠️ POINTS D'ATTENTION / DÉCISIONS TECHNIQUES
 
-- `DATABASE_URL` : PostgreSQL Railway (auto-injecté)
-- `STRIPE_SECRET_KEY` : Stripe Connect (PEP's Swiss SA)
-- `STRIPE_WEBHOOK_SECRET` : webhook immocool.ch
-- `JWT_SECRET` : auth
-- `NEXTAUTH_SECRET` : next-auth
+1. **Stripe partagé** : Même compte Stripe (PEP's Swiss SA) que PEP's V2 — les webhooks utilisent des filtres metadata pour distinguer les paiements immocool vs PEP's
+2. **État des lieux** : Seul processus NON automatisé — présence physique du propriétaire requise, stocké en JSON dans `Lease.etatLieuxEntree` / `etatLieuxSortie`
+3. **next-auth v5 bêta** — attention aux breaking changes si mise à jour
+4. **Taux hypothécaire** : Toujours lire depuis `LegalReference` en BDD, ne jamais hardcoder
+5. **Cantons** : 26 cantons avec règles différentes — toujours vérifier le bon canton avant de générer un document
+6. **Multi-rôles** : Un user peut être propriétaire ET artisan (stripeConnectId commun)
+7. **Domaine** : www.immocool.ch (pas www.immo.cool)
 
 ---
 
-## ⚠️ POINTS D'ATTENTION
+## 🔑 VARIABLES D'ENVIRONNEMENT (Railway)
 
-1. **Stripe partagé avec PEP's V2** → toujours filtrer par metadata pour distinguer les paiements
-2. **Hébergement suisse obligatoire** → Railway europe-west4 ✅
-3. **Conformité légale suisse** : `lib/cantonal-rules.js` + `lib/legal-references.js` sont critiques — ne pas modifier sans validation légale
-4. **next-auth v5 beta** : API peut changer — vérifier la compatibilité lors des mises à jour
-5. **État des lieux** stocké en JSON dans le modèle Lease → prévoir une UI dédiée
+- `DATABASE_URL` : PostgreSQL Railway (auto-injecté)
+- `NEXTAUTH_SECRET` : Secret next-auth
+- `NEXTAUTH_URL` : https://www.immocool.ch
+- `STRIPE_SECRET_KEY` : Clé Stripe PEP's Swiss SA
+- `STRIPE_WEBHOOK_SECRET` : Secret webhook immocool
+- `JWT_SECRET` : Pour tokens JWT custom
 
 ---
 
 ## 🔗 LIENS UTILES
 
 - Repo GitHub : https://github.com/O-N-2950/immo-cool
-- Railway Dashboard : https://railway.app
-- Stripe Dashboard : https://dashboard.stripe.com
-- Docs réglementation : `docs/Réglementation_Bail_Suisse_par_Canton.md`
+- Production : https://www.immocool.ch
+- Railway : https://immo-cool-production.up.railway.app
+- Doc réglementation : `docs/Réglementation_Bail_Suisse_par_Canton.md`
