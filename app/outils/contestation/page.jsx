@@ -14,11 +14,6 @@ const F={d:"'Cormorant Garamond',Georgia,serif",b:"'DM Sans',sans-serif",m:"'Jet
 
 const CANTONS=["JU","GE","VD","NE","FR","BE","VS","ZH","BS","LU","ZG","TI","SG","AG","SO","TG","GR","BL","SH","NW","SZ","OW","AR","AI","UR","GL"];
 
-export const metadata = {
-  title: "Votre loyer est-il trop élevé ? Vérifiez gratuitement — immo.cool",
-  description: "Analysez votre bail en 2 minutes. L'IA compare votre loyer avec le taux hypothécaire, l'IPC et le marché. Lettre de contestation générée automatiquement.",
-};
-
 export default function Contestation() {
   const [step,setStep]=useState(1);
   const [loading,setLoading]=useState(false);
