@@ -1,1306 +1,1135 @@
-"use client";
 import { useState, useEffect, useRef, useCallback } from "react";
+import { LineChart, Line, AreaChart, Area, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Home, Search, Plus, FileText, Key, Users, MessageSquare, Settings, Bell, ChevronRight, ChevronLeft, MapPin, Bed, Bath, Square, Star, Shield, Check, X, Camera, Pen, TrendingUp, Building2, Wrench, LogOut, Menu, ArrowRight, Clock, Zap, Heart, Eye, Phone, Mail, Calendar, DollarSign, BarChart3, AlertTriangle, CheckCircle2, Upload, Sparkles, Lock, Globe, Award, CircleDot } from "lucide-react";
 
-// ═══════════════════════════════════════════
-// DESIGN SYSTEM
-// ═══════════════════════════════════════════
-
+// ═══════════════════════════════════════════════════════════════
+// DESIGN SYSTEM — SWISS NOIR LUXURY
+// ═══════════════════════════════════════════════════════════════
 const C = {
-  bg: "#070809", bgCard: "#0F1114", bgElevated: "#161A1F", bgHover: "#1E2228",
-  accent: "#C8A55C", accentLight: "#E8D5A0", accentDark: "#9E7F3A", accentGlow: "rgba(200,165,92,0.12)",
-  text: "#F2F0ED", textMuted: "#8A8D94", textDim: "#5A5D64", border: "#22262D",
-  success: "#4ADE80", error: "#F87171", info: "#60A5FA", white: "#FFFFFF",
-  gradient: "linear-gradient(135deg, #C8A55C 0%, #E8D5A0 50%, #C8A55C 100%)",
+  bg: "#07060A", bgCard: "#0F0E14", bgElevated: "#16151E", bgHover: "#1C1B27",
+  border: "#2A2838", borderHover: "#3D3A50",
+  gold: "#D4A853", goldLight: "#E8C97A", goldDim: "#A07D2E", goldBg: "rgba(212,168,83,0.08)",
+  text: "#F0EDE6", textSecondary: "#9B97A8", textMuted: "#5E5A6E",
+  success: "#34D399", successBg: "rgba(52,211,153,0.1)",
+  danger: "#F87171", dangerBg: "rgba(248,113,113,0.1)",
+  info: "#60A5FA", infoBg: "rgba(96,165,250,0.1)",
+  purple: "#A78BFA", purpleBg: "rgba(167,139,250,0.08)",
 };
 
-const fonts = `@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap');`;
+const font = {
+  display: "'Cormorant Garamond', Georgia, serif",
+  body: "'DM Sans', -apple-system, sans-serif",
+  mono: "'JetBrains Mono', 'SF Mono', monospace",
+};
 
-// ═══════════════════════════════════════════
-// ICONS
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+// MOCK DATA
+// ═══════════════════════════════════════════════════════════════
+const CANTONS = ["JU","VD","GE","NE","FR","BE","VS","BS","BL","SO","AG","ZH","LU","ZG","SZ","OW","NW","UR","GL","SH","TG","SG","AR","AI","GR","TI"];
+const MOCK_PROPERTIES = [
+  { id:1, title:"3.5 pièces lumineux, vue Jura", address:"Rue de la Gare 12", city:"Delémont", canton:"JU", rooms:3.5, area:78, rent:1350, charges:180, deposit:3, floor:2, totalFloors:4, balcony:true, parking:true, cellar:true, laundry:true, available:"2026-04-01", images:4, status:"active", applications:7, views:143, matchScore:92, previousRent:1280 },
+  { id:2, title:"2.5 pièces rénové, centre-ville", address:"Grand-Rue 45", city:"Porrentruy", canton:"JU", rooms:2.5, area:55, rent:980, charges:120, deposit:2, floor:1, totalFloors:3, balcony:false, parking:false, cellar:true, laundry:false, available:"2026-03-15", images:6, status:"active", applications:12, views:218, matchScore:87, previousRent:920 },
+  { id:3, title:"4.5 pièces familial, quartier calme", address:"Chemin des Prés 8", city:"Delémont", canton:"JU", rooms:4.5, area:105, rent:1780, charges:220, deposit:3, floor:0, totalFloors:2, balcony:true, parking:true, cellar:true, laundry:true, available:"2026-05-01", images:8, status:"draft", applications:0, views:0, matchScore:0, previousRent:null },
+];
+const MOCK_TENANTS = [
+  { id:1, name:"Sophie Müller", score:94, income:6800, job:"CDI — Ingénieure", city:"Bâle", canton:"BS", verified:true, photo:"SM", budget:1500, rooms:"3-4", moveIn:"2026-04-01", permits:"C", match: {budget:28,location:22,rooms:14,timing:10,reliability:14,verified:5} },
+  { id:2, name:"Marc Dubois", score:87, income:5200, job:"CDI — Comptable", city:"Delémont", canton:"JU", verified:true, photo:"MD", budget:1400, rooms:"3-4", moveIn:"2026-04-01", permits:"Suisse", match: {budget:25,location:25,rooms:14,timing:10,reliability:9,verified:4} },
+  { id:3, name:"Leila Amrani", score:81, income:4900, job:"CDD — Chercheuse", city:"Neuchâtel", canton:"NE", verified:false, photo:"LA", budget:1300, rooms:"2-3", moveIn:"2026-03-15", permits:"B", match: {budget:22,location:18,rooms:12,timing:9,reliability:13,verified:3} },
+  { id:4, name:"Thomas Weber", score:76, income:5500, job:"Indépendant", city:"Bienne", canton:"BE", verified:true, photo:"TW", budget:1600, rooms:"3-4", moveIn:"2026-05-01", permits:"Suisse", match: {budget:24,location:15,rooms:14,timing:6,reliability:12,verified:5} },
+  { id:5, name:"Ana Costa", score:68, income:4200, job:"CDI — Vendeuse", city:"Delémont", canton:"JU", verified:false, photo:"AC", budget:1200, rooms:"2-3", moveIn:"2026-04-15", permits:"B", match: {budget:18,location:25,rooms:10,timing:8,reliability:5,verified:2} },
+];
+const MONTHLY_STATS = [
+  {month:"Sep",views:45,applications:3,revenue:0},{month:"Oct",views:89,applications:8,revenue:1350},
+  {month:"Nov",views:134,applications:12,revenue:2330},{month:"Dec",views:98,applications:7,revenue:1350},
+  {month:"Jan",views:167,applications:15,revenue:3680},{month:"Fév",views:218,applications:19,revenue:4030},
+];
+const ETAT_LIEUX_ROOMS = [
+  { name:"Entrée", items:["Porte d'entrée","Serrure","Sol","Murs","Plafond","Éclairage","Interphone","Boîte aux lettres"] },
+  { name:"Séjour", items:["Sol (parquet)","Murs","Plafond","Fenêtres","Stores/volets","Prises électriques","Éclairage","Radiateur/chauffage"] },
+  { name:"Cuisine", items:["Plan de travail","Évier + robinetterie","Cuisinière/plaques","Four","Réfrigérateur","Lave-vaisselle","Hotte","Armoires","Sol","Murs","Fenêtre","Prises"] },
+  { name:"Chambre 1", items:["Sol","Murs","Plafond","Fenêtres","Stores/volets","Prises","Éclairage","Armoire encastrée"] },
+  { name:"Chambre 2", items:["Sol","Murs","Plafond","Fenêtres","Stores/volets","Prises","Éclairage","Armoire encastrée"] },
+  { name:"Salle de bains", items:["Lavabo + robinetterie","Baignoire/douche","WC","Miroir","Ventilation","Carrelage sol","Carrelage murs","Armoire toilette","Porte-serviettes"] },
+  { name:"Balcon", items:["Sol","Balustrade","Stores extérieurs","Éclairage"] },
+  { name:"Cave", items:["Porte + serrure","Sol","Murs","Éclairage","Ventilation"] },
+];
 
-const SwissIcon = ({ size = 20 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <rect width="24" height="24" rx="3" fill="#FF0000"/>
-    <path d="M10 6h4v12h-4z" fill="white"/><path d="M6 10h12v4H6z" fill="white"/>
-  </svg>
-);
+// ═══════════════════════════════════════════════════════════════
+// MICRO-COMPONENTS
+// ═══════════════════════════════════════════════════════════════
+const Badge = ({children,color="gold",size="sm"}) => {
+  const colors = { gold:[C.goldBg,C.gold], green:[C.successBg,C.success], red:[C.dangerBg,C.danger], blue:[C.infoBg,C.info], purple:[C.purpleBg,C.purple] };
+  const [bg,fg] = colors[color]||colors.gold;
+  return <span style={{background:bg,color:fg,padding:size==="sm"?"3px 10px":"5px 14px",borderRadius:20,fontSize:size==="sm"?11:12,fontFamily:font.mono,fontWeight:600,letterSpacing:"0.02em",display:"inline-flex",alignItems:"center",gap:4}}>{children}</span>;
+};
 
-const Icon = ({ name, size = 20, color = C.textMuted }) => {
-  const d = {
-    home: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6",
-    search: "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z",
-    user: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z",
-    building: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4",
-    heart: "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z",
-    check: "M5 13l4 4L19 7",
-    star: "M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z",
-    calendar: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z",
-    chat: "M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z",
-    tool: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z",
-    document: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
-    money: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
-    shield: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z",
-    arrow: "M17 8l4 4m0 0l-4 4m4-4H3",
-    location: "M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z",
-    close: "M6 18L18 6M6 6l12 12",
-    menu: "M4 6h16M4 12h16M4 18h16",
-    plus: "M12 4v16m8-8H4",
-    photo: "M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z",
-    bell: "M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9",
-    wrench: "M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z",
-    logout: "M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1",
-    filter: "M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z",
-    chart: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z",
-    scale: "M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3",
-    globe: "M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9",
-    lock: "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z",
-    clock: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
-    trending: "M13 7h8m0 0v8m0-8l-8 8-4-4-6 6",
-  };
+const ScoreRing = ({score,size=64,strokeWidth=4,showLabel=true}) => {
+  const r = (size-strokeWidth)/2;
+  const circ = 2*Math.PI*r;
+  const offset = circ*(1-score/100);
+  const color = score>=85?C.success:score>=70?C.gold:score>=50?C.info:C.danger;
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <path d={d[name] || d.home}/>
-    </svg>
+    <div style={{position:"relative",width:size,height:size}}>
+      <svg width={size} height={size} style={{transform:"rotate(-90deg)"}}>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={C.border} strokeWidth={strokeWidth}/>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={strokeWidth} strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round" style={{transition:"stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1)"}}/>
+      </svg>
+      {showLabel && <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:font.mono,fontSize:size*0.28,fontWeight:700,color}}>{score}</div>}
+    </div>
   );
 };
 
-// ═══════════════════════════════════════════
-// ANIMATED COUNTER
-// ═══════════════════════════════════════════
-
-const Counter = ({ target, suffix = "", prefix = "" }) => {
-  const [val, setVal] = useState(0);
-  const [go, setGo] = useState(false);
-  const ref = useRef(null);
-  useEffect(() => {
-    const o = new IntersectionObserver(([e]) => { if (e.isIntersecting) setGo(true); }, { threshold: 0.3 });
-    if (ref.current) o.observe(ref.current);
-    return () => o.disconnect();
-  }, []);
-  useEffect(() => {
-    if (!go) return;
-    let c = 0; const s = 50; const inc = target / s;
-    const t = setInterval(() => { c += inc; if (c >= target) { setVal(target); clearInterval(t); } else setVal(Math.floor(c)); }, 40);
-    return () => clearInterval(t);
-  }, [go, target]);
-  return <span ref={ref}>{prefix}{val.toLocaleString("fr-CH")}{suffix}</span>;
-};
-
-// ═══════════════════════════════════════════
-// CANTONAL DATA (inline for frontend)
-// ═══════════════════════════════════════════
-
-const CANTONS_DATA = {
-  JU: { name: "Jura", dates: ["31 mars","30 juin","30 sept.","31 déc."], formRequired: false, penurie: false },
-  VD: { name: "Vaud", dates: ["1er janv.","1er avril","1er juill.","1er oct."], formRequired: true, penurie: true, rules: ["RULV applicables","État des lieux obligatoire","Cautionnement simple uniquement"] },
-  GE: { name: "Genève", dates: ["Pas de dates locales"], formRequired: true, penurie: true, rules: ["Plafond loyer après rénovation","Logements subventionnés art. 24"] },
-  NE: { name: "Neuchâtel", dates: ["31 mars","30 juin","30 sept."], formRequired: true, penurie: true },
-  FR: { name: "Fribourg", dates: ["31 mars","30 juin","30 sept.","31 déc."], formRequired: true, penurie: true },
-  VS: { name: "Valais", dates: ["Pas de dates locales"], formRequired: false, penurie: false },
-  BE: { name: "Berne", dates: ["30 avril","31 oct."], formRequired: true, penurie: true },
-  ZH: { name: "Zurich", dates: ["31 mars","30 sept."], formRequired: true, penurie: true },
-  BS: { name: "Bâle-Ville", dates: ["Chaque fin de mois (sauf déc.)"], formRequired: true, penurie: true },
-  LU: { name: "Lucerne", dates: ["Pas de dates locales"], formRequired: true, penurie: true },
-  ZG: { name: "Zoug", dates: ["31 mars","30 juin","30 sept."], formRequired: true, penurie: true },
-};
-
-// ═══════════════════════════════════════════
-// DEMO DATA
-// ═══════════════════════════════════════════
-
-const DEMO_PROPERTIES = [
-  { id: 1, title: "3.5 pièces lumineux", city: "Delémont", canton: "JU", rooms: 3.5, rent: 1350, charges: 180, surface: 85, floor: 2, balcony: true, parking: true, elevator: false, img: "🏠", available: "2026-04-01", status: "active" },
-  { id: 2, title: "4.5 pièces avec vue", city: "Porrentruy", canton: "JU", rooms: 4.5, rent: 1580, charges: 200, surface: 110, floor: 3, balcony: true, parking: true, elevator: true, img: "🏡", available: "2026-05-01", status: "active" },
-  { id: 3, title: "2.5 pièces rénové", city: "Lausanne", canton: "VD", rooms: 2.5, rent: 1680, charges: 220, surface: 55, floor: 4, balcony: false, parking: false, elevator: true, img: "🏢", available: "2026-04-01", status: "active" },
-  { id: 4, title: "5.5 pièces familial", city: "Neuchâtel", canton: "NE", rooms: 5.5, rent: 2100, charges: 280, surface: 140, floor: 1, balcony: true, parking: true, elevator: false, img: "🏘️", available: "2026-06-01", status: "active" },
-  { id: 5, title: "3.5 pièces centre-ville", city: "Fribourg", canton: "FR", rooms: 3.5, rent: 1520, charges: 190, surface: 78, floor: 2, balcony: true, parking: false, elevator: true, img: "🏙️", available: "2026-03-15", status: "active" },
-  { id: 6, title: "Studio meublé", city: "Genève", canton: "GE", rooms: 1.5, rent: 1250, charges: 100, surface: 32, floor: 5, balcony: false, parking: false, elevator: true, img: "🏨", available: "2026-03-01", status: "active" },
-];
-
-const DEMO_ARTISANS = [
-  { id: 1, name: "Müller Plomberie", specialty: "Plomberie", city: "Delémont", canton: "JU", rating: 4.8, reviews: 47, hourly: 85 },
-  { id: 2, name: "Électro Suisse Sàrl", specialty: "Électricité", city: "Porrentruy", canton: "JU", rating: 4.9, reviews: 32, hourly: 90 },
-  { id: 3, name: "Peintex", specialty: "Peinture", city: "Delémont", canton: "JU", rating: 4.6, reviews: 28, hourly: 75 },
-  { id: 4, name: "Serrurier Express", specialty: "Serrurerie", city: "Delémont", canton: "JU", rating: 4.7, reviews: 61, hourly: 95 },
-];
-
-const DEMO_MESSAGES = [
-  { id: 1, from: "Marie Dupont", subject: "Visite 3.5 pièces", preview: "Bonjour, je souhaiterais visiter l'appartement...", time: "10:32", unread: true },
-  { id: 2, from: "Pierre Martin", subject: "Documents complémentaires", preview: "Voici les attestations d'assurance demandées...", time: "Hier", unread: true },
-  { id: 3, from: "immo.cool", subject: "Nouveau match !", preview: "Un nouveau locataire correspond à votre bien...", time: "Lun.", unread: false },
-];
-
-// ═══════════════════════════════════════════
-// GLOBAL STYLES
-// ═══════════════════════════════════════════
-
-const globalCSS = `
-${fonts}
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { background: ${C.bg}; color: ${C.text}; font-family: 'DM Sans', sans-serif; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
-::selection { background: ${C.accent}; color: ${C.bg}; }
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: ${C.bg}; }
-::-webkit-scrollbar-thumb { background: ${C.border}; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: ${C.textDim}; }
-input, select, textarea { font-family: 'DM Sans', sans-serif; }
-
-@keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
-@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-@keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
-@keyframes glow { 0%, 100% { box-shadow: 0 0 20px rgba(200,165,92,0.15); } 50% { box-shadow: 0 0 40px rgba(200,165,92,0.3); } }
-@keyframes scaleIn { from { opacity:0; transform: scale(0.95); } to { opacity:1; transform: scale(1); } }
-@keyframes gradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-@keyframes typewriter { from { width: 0; } to { width: 100%; } }
-
-.fade-up { animation: fadeUp 0.7s ease-out forwards; opacity: 0; }
-.fade-in { animation: fadeIn 0.5s ease-out forwards; opacity: 0; }
-.slide-in { animation: slideIn 0.5s ease-out forwards; opacity: 0; }
-.stagger-1 { animation-delay: 0.1s; } .stagger-2 { animation-delay: 0.2s; } .stagger-3 { animation-delay: 0.3s; }
-.stagger-4 { animation-delay: 0.4s; } .stagger-5 { animation-delay: 0.5s; } .stagger-6 { animation-delay: 0.6s; }
-`;
-
-// ═══════════════════════════════════════════
-// SHARED UI COMPONENTS
-// ═══════════════════════════════════════════
-
-const Btn = ({ children, variant = "primary", onClick, style, disabled, full }) => {
-  const base = {
-    display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
-    padding: "12px 24px", borderRadius: 10, fontSize: 14, fontWeight: 600, fontFamily: "'DM Sans'",
-    cursor: disabled ? "not-allowed" : "pointer", transition: "all 0.3s ease", border: "none",
-    opacity: disabled ? 0.5 : 1, width: full ? "100%" : "auto",
+const GlowButton = ({children,onClick,variant="primary",size="md",icon:Icon,full}) => {
+  const [hover,setHover] = useState(false);
+  const styles = {
+    primary: {bg:C.gold,color:C.bg,hoverBg:C.goldLight,shadow:`0 0 30px ${C.gold}40`},
+    secondary: {bg:"transparent",color:C.gold,hoverBg:C.goldBg,border:`1px solid ${C.gold}50`,shadow:"none"},
+    ghost: {bg:"transparent",color:C.textSecondary,hoverBg:C.bgHover,shadow:"none"},
+    danger: {bg:C.dangerBg,color:C.danger,hoverBg:"rgba(248,113,113,0.2)",shadow:"none"},
   };
-  const variants = {
-    primary: { ...base, background: C.gradient, color: C.bg, backgroundSize: "200% 200%", },
-    secondary: { ...base, background: "transparent", color: C.accent, border: `1.5px solid ${C.accent}`, },
-    ghost: { ...base, background: "transparent", color: C.textMuted, },
-    danger: { ...base, background: "transparent", color: C.error, border: `1.5px solid ${C.error}`, },
-  };
-  return <button style={{ ...variants[variant], ...style }} onClick={onClick} disabled={disabled}
-    onMouseEnter={e => { if (!disabled) { e.target.style.transform = "translateY(-2px)"; e.target.style.boxShadow = `0 8px 30px ${C.accentGlow}`; }}}
-    onMouseLeave={e => { e.target.style.transform = "translateY(0)"; e.target.style.boxShadow = "none"; }}
-  >{children}</button>;
+  const s = styles[variant];
+  const pad = size==="sm"?"8px 16px":size==="lg"?"14px 32px":"10px 24px";
+  const fs = size==="sm"?12:size==="lg"?15:13;
+  return (
+    <button onClick={onClick} onMouseEnter={()=>setHover(true)} onMouseLeave={()=>setHover(false)} style={{
+      background:hover?s.hoverBg:s.bg, color:s.color, padding:pad, border:s.border||"none",
+      borderRadius:8, cursor:"pointer", fontFamily:font.body, fontSize:fs, fontWeight:600,
+      letterSpacing:"0.03em", display:"inline-flex", alignItems:"center", gap:8,
+      transition:"all 0.3s cubic-bezier(0.4,0,0.2,1)", boxShadow:hover?s.shadow:"none",
+      width:full?"100%":"auto", justifyContent:"center",
+    }}>
+      {Icon && <Icon size={fs+2}/>}
+      {children}
+    </button>
+  );
 };
 
-const Card = ({ children, style, onClick, hover = true, glow = false }) => (
-  <div style={{
-    background: C.bgCard, borderRadius: 16, border: `1px solid ${C.border}`,
-    padding: 24, transition: "all 0.3s ease", cursor: onClick ? "pointer" : "default",
-    ...(glow ? { animation: "glow 3s ease-in-out infinite" } : {}), ...style,
-  }} onClick={onClick}
-    onMouseEnter={e => { if(hover) { e.currentTarget.style.borderColor = C.accent + "40"; e.currentTarget.style.transform = "translateY(-2px)"; }}}
-    onMouseLeave={e => { if(hover) { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.transform = "translateY(0)"; }}}
-  >{children}</div>
-);
+const StatCard = ({label,value,sub,icon:Icon,trend,color="gold"}) => {
+  const fg = {gold:C.gold,green:C.success,blue:C.info,purple:C.purple}[color];
+  return (
+    <div style={{background:C.bgCard,border:`1px solid ${C.border}`,borderRadius:12,padding:"20px 24px",display:"flex",flexDirection:"column",gap:8}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+        <span style={{fontFamily:font.body,fontSize:12,color:C.textMuted,textTransform:"uppercase",letterSpacing:"0.08em"}}>{label}</span>
+        {Icon && <div style={{width:32,height:32,borderRadius:8,background:`${fg}15`,display:"flex",alignItems:"center",justifyContent:"center"}}><Icon size={16} color={fg}/></div>}
+      </div>
+      <div style={{fontFamily:font.display,fontSize:32,fontWeight:600,color:C.text,lineHeight:1}}>{value}</div>
+      <div style={{display:"flex",alignItems:"center",gap:6}}>
+        {trend && <span style={{fontFamily:font.mono,fontSize:11,color:trend>0?C.success:C.danger}}>{trend>0?"+":""}{trend}%</span>}
+        {sub && <span style={{fontFamily:font.body,fontSize:12,color:C.textMuted}}>{sub}</span>}
+      </div>
+    </div>
+  );
+};
 
-const Badge = ({ children, color = C.accent, style }) => (
-  <span style={{
-    display: "inline-flex", alignItems: "center", padding: "4px 10px", borderRadius: 6,
-    fontSize: 11, fontWeight: 600, letterSpacing: 0.5, textTransform: "uppercase",
-    background: color + "18", color: color, ...style,
-  }}>{children}</span>
-);
-
-const Input = ({ label, ...props }) => (
-  <div style={{ marginBottom: 16 }}>
-    {label && <label style={{ display: "block", fontSize: 13, color: C.textMuted, marginBottom: 6, fontWeight: 500 }}>{label}</label>}
-    <input {...props} style={{
-      width: "100%", padding: "12px 16px", borderRadius: 10, border: `1px solid ${C.border}`,
-      background: C.bgElevated, color: C.text, fontSize: 14, fontFamily: "'DM Sans'",
-      outline: "none", transition: "border-color 0.3s",
-      ...props.style,
-    }} onFocus={e => e.target.style.borderColor = C.accent}
-       onBlur={e => e.target.style.borderColor = C.border} />
+const Input = ({label,value,onChange,type="text",placeholder,icon:Icon,suffix}) => (
+  <div style={{display:"flex",flexDirection:"column",gap:6}}>
+    {label && <label style={{fontFamily:font.body,fontSize:12,color:C.textSecondary,fontWeight:500}}>{label}</label>}
+    <div style={{position:"relative",display:"flex",alignItems:"center"}}>
+      {Icon && <Icon size={16} color={C.textMuted} style={{position:"absolute",left:12}}/>}
+      <input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} style={{
+        width:"100%",background:C.bgElevated,border:`1px solid ${C.border}`,borderRadius:8,
+        padding:`10px ${suffix?"50px":"14px"} 10px ${Icon?"40px":"14px"}`,fontFamily:font.body,fontSize:14,
+        color:C.text,outline:"none",transition:"border-color 0.2s",
+      }} onFocus={e=>e.target.style.borderColor=C.gold+"80"} onBlur={e=>e.target.style.borderColor=C.border}/>
+      {suffix && <span style={{position:"absolute",right:14,fontFamily:font.mono,fontSize:12,color:C.textMuted}}>{suffix}</span>}
+    </div>
   </div>
 );
 
-const Select = ({ label, options, ...props }) => (
-  <div style={{ marginBottom: 16 }}>
-    {label && <label style={{ display: "block", fontSize: 13, color: C.textMuted, marginBottom: 6, fontWeight: 500 }}>{label}</label>}
-    <select {...props} style={{
-      width: "100%", padding: "12px 16px", borderRadius: 10, border: `1px solid ${C.border}`,
-      background: C.bgElevated, color: C.text, fontSize: 14, fontFamily: "'DM Sans'",
-      outline: "none", appearance: "none", cursor: "pointer", ...props.style,
+const Dropdown = ({label,value,onChange,options}) => (
+  <div style={{display:"flex",flexDirection:"column",gap:6}}>
+    {label && <label style={{fontFamily:font.body,fontSize:12,color:C.textSecondary,fontWeight:500}}>{label}</label>}
+    <select value={value} onChange={e=>onChange(e.target.value)} style={{
+      width:"100%",background:C.bgElevated,border:`1px solid ${C.border}`,borderRadius:8,
+      padding:"10px 14px",fontFamily:font.body,fontSize:14,color:C.text,outline:"none",
+      cursor:"pointer",appearance:"none",
     }}>
-      {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+      {options.map(o=><option key={o.value} value={o.value} style={{background:C.bg}}>{o.label}</option>)}
     </select>
   </div>
 );
 
-const StatCard = ({ icon, label, value, sub, color = C.accent }) => (
-  <Card style={{ textAlign: "center", padding: "20px 16px" }}>
-    <div style={{ width: 44, height: 44, borderRadius: 12, background: color + "15", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}>
-      <Icon name={icon} size={22} color={color}/>
-    </div>
-    <div style={{ fontSize: 28, fontWeight: 700, fontFamily: "'Playfair Display'", color: C.text, marginBottom: 4 }}>{value}</div>
-    <div style={{ fontSize: 13, color: C.textMuted, marginBottom: 2 }}>{label}</div>
-    {sub && <div style={{ fontSize: 12, color: color }}>{sub}</div>}
-  </Card>
-);
-
-// ═══════════════════════════════════════════
-// MAIN APP
-// ═══════════════════════════════════════════
-
-export default function ImmoCoolApp() {
-  const [view, setView] = useState("landing");
-  const [userType, setUserType] = useState(null); // "owner" | "tenant"
-  const [tab, setTab] = useState("dashboard");
-  const [mobileMenu, setMobileMenu] = useState(false);
-  const [authMode, setAuthMode] = useState("login");
-  const [searchFilters, setSearchFilters] = useState({ canton: "", maxRent: "", minRooms: "" });
-  const [selectedCanton, setSelectedCanton] = useState(null);
-  const [selectedProperty, setSelectedProperty] = useState(null);
-
-  useEffect(() => { window.scrollTo(0, 0); }, [view, tab]);
-
-  const navigate = useCallback((v, type) => {
-    setView(v);
-    if (type) setUserType(type);
-    setTab("dashboard");
-    setMobileMenu(false);
-  }, []);
-
-  // ═══════════════════════════════════════════
-  // LANDING PAGE
-  // ═══════════════════════════════════════════
-
-  const Landing = () => {
-    const [heroReady, setHeroReady] = useState(false);
-    useEffect(() => { setTimeout(() => setHeroReady(true), 100); }, []);
-
-    return (
-      <div style={{ minHeight: "100vh" }}>
-        {/* NAV */}
-        <nav style={{
-          position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
-          padding: "16px 32px", display: "flex", alignItems: "center", justifyContent: "space-between",
-          background: "rgba(7,8,9,0.85)", backdropFilter: "blur(20px)", borderBottom: `1px solid ${C.border}20`,
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }} onClick={() => navigate("landing")}>
-            <SwissIcon size={26}/> 
-            <span style={{ fontFamily: "'Playfair Display'", fontSize: 22, fontWeight: 700, color: C.text }}>immo<span style={{ color: C.accent }}>.cool</span></span>
+// ═══════════════════════════════════════════════════════════════
+// PAGE: LANDING
+// ═══════════════════════════════════════════════════════════════
+const Landing = ({onNavigate}) => {
+  const [animStep,setAnimStep] = useState(0);
+  useEffect(()=>{const t=setTimeout(()=>setAnimStep(1),100);const t2=setTimeout(()=>setAnimStep(2),400);const t3=setTimeout(()=>setAnimStep(3),700);return()=>{clearTimeout(t);clearTimeout(t2);clearTimeout(t3)}},[]);
+  
+  const features = [
+    {icon:Zap,title:"Matching IA",desc:"Algorithme qui score vos candidats sur 6 critères. Fini le tri manuel.",color:C.gold},
+    {icon:FileText,title:"Bail conforme",desc:"Généré automatiquement selon les 26 cantons. Taux hypothécaire et IPC intégrés.",color:C.success},
+    {icon:Camera,title:"État des lieux digital",desc:"Pièce par pièce, photos, signatures tactiles. Comparaison entrée/sortie automatique.",color:C.info},
+    {icon:Shield,title:"Conformité légale",desc:"OBLF, formulaire de loyer initial, délais cantonaux. Tout est vérifié en temps réel.",color:C.purple},
+    {icon:DollarSign,title:"Paiements Stripe",desc:"Commission prélevée automatiquement. Zéro manipulation. Zéro risque d'impayé.",color:C.gold},
+    {icon:Wrench,title:"Marketplace artisans",desc:"Plombier, électricien, peintre — interventions gérées et payées dans l'app.",color:C.success},
+  ];
+  
+  return (
+    <div style={{minHeight:"100vh",background:C.bg,color:C.text,overflow:"hidden"}}>
+      {/* HERO */}
+      <div style={{position:"relative",minHeight:"100vh",display:"flex",flexDirection:"column"}}>
+        {/* Gradient orbs */}
+        <div style={{position:"absolute",top:"-20%",right:"-10%",width:600,height:600,borderRadius:"50%",background:`radial-gradient(circle, ${C.gold}08 0%, transparent 70%)`,pointerEvents:"none"}}/>
+        <div style={{position:"absolute",bottom:"-30%",left:"-15%",width:800,height:800,borderRadius:"50%",background:`radial-gradient(circle, ${C.purple}05 0%, transparent 70%)`,pointerEvents:"none"}}/>
+        
+        {/* Nav */}
+        <nav style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"24px 48px",position:"relative",zIndex:10,opacity:animStep>=1?1:0,transform:animStep>=1?"translateY(0)":"translateY(-20px)",transition:"all 0.8s cubic-bezier(0.16,1,0.3,1)"}}>
+          <div style={{display:"flex",alignItems:"center",gap:4}}>
+            <span style={{fontFamily:font.display,fontSize:28,fontWeight:600,color:C.text}}>immo</span>
+            <span style={{fontFamily:font.display,fontSize:28,fontWeight:600,color:C.gold}}>.</span>
+            <span style={{fontFamily:font.display,fontSize:28,fontWeight:600,color:C.text}}>cool</span>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Btn variant="ghost" onClick={() => { setAuthMode("login"); navigate("auth"); }} style={{ fontSize: 13, padding: "8px 16px" }}>Connexion</Btn>
-            <Btn onClick={() => { setAuthMode("register"); navigate("auth"); }} style={{ fontSize: 13, padding: "8px 18px" }}>Créer un compte</Btn>
+          <div style={{display:"flex",gap:8}}>
+            <GlowButton variant="ghost" onClick={()=>onNavigate("login")}>Connexion</GlowButton>
+            <GlowButton onClick={()=>onNavigate("register")}>Commencer gratuitement</GlowButton>
           </div>
         </nav>
 
-        {/* HERO */}
-        <section style={{
-          minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-          textAlign: "center", padding: "120px 24px 80px", position: "relative", overflow: "hidden",
-        }}>
-          {/* Background effects */}
-          <div style={{ position: "absolute", top: "15%", left: "10%", width: 500, height: 500, borderRadius: "50%",
-            background: `radial-gradient(circle, ${C.accent}08 0%, transparent 70%)`, filter: "blur(60px)", pointerEvents: "none" }}/>
-          <div style={{ position: "absolute", bottom: "10%", right: "5%", width: 400, height: 400, borderRadius: "50%",
-            background: `radial-gradient(circle, ${C.info}05 0%, transparent 70%)`, filter: "blur(60px)", pointerEvents: "none" }}/>
-          
-          {/* Grid overlay */}
-          <div style={{ position: "absolute", inset: 0, opacity: 0.03,
-            backgroundImage: `linear-gradient(${C.accent} 1px, transparent 1px), linear-gradient(90deg, ${C.accent} 1px, transparent 1px)`,
-            backgroundSize: "60px 60px", pointerEvents: "none" }}/>
-
-          <div style={{ position: "relative", zIndex: 1, maxWidth: 800, opacity: heroReady ? 1 : 0, transform: heroReady ? "translateY(0)" : "translateY(40px)", transition: "all 1s cubic-bezier(0.16, 1, 0.3, 1)" }}>
-            <Badge color={C.success} style={{ marginBottom: 24, fontSize: 12 }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: C.success, marginRight: 6, display: "inline-block", animation: "pulse 2s infinite" }}/>
-              100% gratuit pour les locataires
-            </Badge>
+        {/* Hero content */}
+        <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",padding:"0 48px",position:"relative",zIndex:5}}>
+          <div style={{maxWidth:900,textAlign:"center"}}>
+            <div style={{opacity:animStep>=1?1:0,transform:animStep>=1?"translateY(0)":"translateY(30px)",transition:"all 1s cubic-bezier(0.16,1,0.3,1) 0.1s"}}>
+              <Badge color="gold" size="md">La première régie 100% IA de Suisse</Badge>
+            </div>
             
-            <h1 style={{ fontFamily: "'Playfair Display'", fontSize: "clamp(42px, 6vw, 72px)", fontWeight: 700, lineHeight: 1.1, marginBottom: 24, letterSpacing: "-0.02em" }}>
-              L'immobilier suisse,<br/>
-              <span style={{ background: C.gradient, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundSize: "200% 200%", animation: "gradientShift 4s ease infinite" }}>
-                réinventé.
-              </span>
+            <h1 style={{fontFamily:font.display,fontSize:"clamp(48px,7vw,86px)",fontWeight:400,lineHeight:1.05,margin:"32px 0 24px",opacity:animStep>=2?1:0,transform:animStep>=2?"translateY(0)":"translateY(40px)",transition:"all 1s cubic-bezier(0.16,1,0.3,1) 0.2s"}}>
+              Louez sans<br/>
+              <span style={{fontStyle:"italic",color:C.gold}}>intermédiaire</span>
             </h1>
-
-            <p style={{ fontSize: 18, color: C.textMuted, lineHeight: 1.7, maxWidth: 560, margin: "0 auto 40px" }}>
-              La première plateforme qui élimine les régies. Publiez, trouvez, signez — 
-              avec le respect automatique des <span style={{ color: C.accent }}>26 réglementations cantonales</span>.
+            
+            <p style={{fontFamily:font.body,fontSize:18,color:C.textSecondary,maxWidth:560,margin:"0 auto 40px",lineHeight:1.7,opacity:animStep>=2?1:0,transform:animStep>=2?"translateY(0)":"translateY(30px)",transition:"all 1s cubic-bezier(0.16,1,0.3,1) 0.35s"}}>
+              Matching intelligent, bail conforme aux 26 cantons, paiements sécurisés, état des lieux digital — 100% automatisé. <strong style={{color:C.text}}>Gratuit pour les locataires.</strong>
             </p>
-
-            <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
-              <Btn onClick={() => { setAuthMode("register"); navigate("auth"); }} style={{ padding: "16px 36px", fontSize: 16 }}>
-                Commencer gratuitement <Icon name="arrow" size={18} color={C.bg}/>
-              </Btn>
-              <Btn variant="secondary" onClick={() => navigate("app", "tenant")} style={{ padding: "16px 32px", fontSize: 16 }}>
-                Explorer les biens
-              </Btn>
+            
+            <div style={{display:"flex",gap:16,justifyContent:"center",opacity:animStep>=3?1:0,transform:animStep>=3?"translateY(0)":"translateY(20px)",transition:"all 1s cubic-bezier(0.16,1,0.3,1) 0.5s"}}>
+              <GlowButton size="lg" icon={ArrowRight} onClick={()=>onNavigate("register")}>Créer un compte propriétaire</GlowButton>
+              <GlowButton size="lg" variant="secondary" icon={Search} onClick={()=>onNavigate("register")}>Chercher un appartement</GlowButton>
             </div>
-          </div>
-        </section>
-
-        {/* STATS BAR */}
-        <section style={{ background: C.bgCard, borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}`, padding: "48px 24px" }}>
-          <div style={{ maxWidth: 1000, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 32, textAlign: "center" }}>
-            {[
-              { val: <Counter target={50} suffix="%" />, label: "moins cher qu'une régie" },
-              { val: <Counter target={26} />, label: "cantons couverts" },
-              { val: <Counter target={0} prefix="CHF " />, label: "pour les locataires" },
-              { val: <Counter target={10} suffix=" min" />, label: "pour publier un bien" },
-            ].map((s, i) => (
-              <div key={i} className={`fade-up stagger-${i+1}`}>
-                <div style={{ fontFamily: "'Playfair Display'", fontSize: 36, fontWeight: 700, color: C.accent, marginBottom: 8 }}>{s.val}</div>
-                <div style={{ fontSize: 14, color: C.textMuted }}>{s.label}</div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* HOW IT WORKS */}
-        <section style={{ padding: "100px 24px", maxWidth: 1100, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: 64 }}>
-            <Badge style={{ marginBottom: 16 }}>Comment ça marche</Badge>
-            <h2 style={{ fontFamily: "'Playfair Display'", fontSize: 36, fontWeight: 600, marginBottom: 16 }}>
-              Simple. Transparent. <span style={{ color: C.accent }}>Légal.</span>
-            </h2>
-            <p style={{ color: C.textMuted, fontSize: 16, maxWidth: 500, margin: "0 auto" }}>
-              Trois étapes pour remplacer votre régie immobilière.
-            </p>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24 }}>
-            {[
-              { icon: "building", num: "01", title: "Publiez", desc: "Ajoutez votre bien en 10 minutes. Notre moteur cantonal génère automatiquement les formulaires légaux obligatoires.", color: C.accent },
-              { icon: "search", num: "02", title: "Matchez", desc: "Notre algorithme de matching trouve les locataires fiables qui correspondent à votre bien. Score de compatibilité intelligent.", color: C.info },
-              { icon: "shield", num: "03", title: "Signez", desc: "Bail conforme aux 26 réglementations cantonales. Signature électronique. État des lieux intégré. Garantie de loyer.", color: C.success },
-            ].map((step, i) => (
-              <Card key={i} style={{ padding: 32, position: "relative", overflow: "hidden" }} glow={i === 0}>
-                <div style={{ position: "absolute", top: 16, right: 20, fontFamily: "'Playfair Display'", fontSize: 64, fontWeight: 700, color: step.color + "08" }}>{step.num}</div>
-                <div style={{ width: 52, height: 52, borderRadius: 14, background: step.color + "12", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20 }}>
-                  <Icon name={step.icon} size={26} color={step.color}/>
-                </div>
-                <h3 style={{ fontFamily: "'Playfair Display'", fontSize: 22, fontWeight: 600, marginBottom: 12 }}>{step.title}</h3>
-                <p style={{ color: C.textMuted, lineHeight: 1.7, fontSize: 14 }}>{step.desc}</p>
-              </Card>
-            ))}
-          </div>
-        </section>
-
-        {/* PRICING */}
-        <section style={{ padding: "80px 24px", background: C.bgCard, borderTop: `1px solid ${C.border}` }}>
-          <div style={{ maxWidth: 900, margin: "0 auto" }}>
-            <div style={{ textAlign: "center", marginBottom: 56 }}>
-              <Badge color={C.success} style={{ marginBottom: 16 }}>Tarifs</Badge>
-              <h2 style={{ fontFamily: "'Playfair Display'", fontSize: 36, fontWeight: 600, marginBottom: 16 }}>
-                Pas de frais cachés. <span style={{ color: C.accent }}>Jamais.</span>
-              </h2>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24 }}>
-              {/* TENANT */}
-              <Card style={{ padding: 36, border: `2px solid ${C.success}30`, position: "relative" }}>
-                <Badge color={C.success} style={{ position: "absolute", top: -12, left: 24 }}>Populaire</Badge>
-                <div style={{ marginBottom: 8 }}>
-                  <Icon name="user" size={20} color={C.success}/>
-                </div>
-                <h3 style={{ fontFamily: "'Playfair Display'", fontSize: 20, fontWeight: 600, marginBottom: 8 }}>Locataire</h3>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 20 }}>
-                  <span style={{ fontFamily: "'Playfair Display'", fontSize: 48, fontWeight: 700, color: C.success }}>CHF 0</span>
-                  <span style={{ color: C.textMuted, fontSize: 14 }}>/ toujours</span>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 28 }}>
-                  {["Recherche illimitée","Candidatures illimitées","Algorithme de matching","Vérification de dossier","Messagerie directe","Alertes personnalisées"].map((f, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, color: C.textMuted }}>
-                      <Icon name="check" size={16} color={C.success}/> {f}
-                    </div>
-                  ))}
-                </div>
-                <Btn full onClick={() => navigate("app", "tenant")} style={{ background: C.success, color: C.bg }}>Chercher un logement</Btn>
-              </Card>
-
-              {/* OWNER */}
-              <Card style={{ padding: 36, border: `2px solid ${C.accent}30` }}>
-                <div style={{ marginBottom: 8 }}>
-                  <Icon name="building" size={20} color={C.accent}/>
-                </div>
-                <h3 style={{ fontFamily: "'Playfair Display'", fontSize: 20, fontWeight: 600, marginBottom: 8 }}>Propriétaire</h3>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 4 }}>
-                  <span style={{ fontFamily: "'Playfair Display'", fontSize: 48, fontWeight: 700, color: C.accent }}>50%</span>
-                  <span style={{ color: C.textMuted, fontSize: 14 }}>du 1er loyer</span>
-                </div>
-                <p style={{ fontSize: 13, color: C.textMuted, marginBottom: 20 }}>Payé uniquement quand un bail est signé. Pas de frais mensuels, pas d'abonnement.</p>
-                <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 28 }}>
-                  {["Publication illimitée","Matching intelligent","Moteur de règles 26 cantons","Bail conforme auto-généré","Formulaires officiels","Artisans vérifiés (-90% vs régie)"].map((f, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, color: C.textMuted }}>
-                      <Icon name="check" size={16} color={C.accent}/> {f}
-                    </div>
-                  ))}
-                </div>
-                <Btn full onClick={() => navigate("app", "owner")}>Publier mon bien</Btn>
-              </Card>
-            </div>
-
-            {/* Comparison */}
-            <Card style={{ marginTop: 32, padding: 32, background: C.bgElevated, textAlign: "center" }}>
-              <p style={{ fontSize: 14, color: C.textMuted, marginBottom: 8 }}>Comparaison pour un loyer de CHF 1'500/mois</p>
-              <div style={{ display: "flex", justifyContent: "center", gap: 40, flexWrap: "wrap" }}>
-                <div>
-                  <div style={{ fontSize: 13, color: C.textDim, marginBottom: 4 }}>Régie traditionnelle</div>
-                  <div style={{ fontFamily: "'Playfair Display'", fontSize: 28, fontWeight: 700, color: C.error, textDecoration: "line-through" }}>CHF 1'500</div>
-                  <div style={{ fontSize: 12, color: C.textDim }}>100% du premier loyer</div>
-                </div>
-                <div style={{ width: 1, background: C.border, alignSelf: "stretch" }}/>
-                <div>
-                  <div style={{ fontSize: 13, color: C.accent, marginBottom: 4, fontWeight: 600 }}>immo.cool</div>
-                  <div style={{ fontFamily: "'Playfair Display'", fontSize: 28, fontWeight: 700, color: C.success }}>CHF 750</div>
-                  <div style={{ fontSize: 12, color: C.success }}>50% du premier loyer</div>
-                </div>
-              </div>
-            </Card>
-          </div>
-        </section>
-
-        {/* CANTONAL ENGINE SHOWCASE */}
-        <section style={{ padding: "100px 24px", maxWidth: 1100, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: 56 }}>
-            <Badge color={C.info} style={{ marginBottom: 16 }}>Innovation</Badge>
-            <h2 style={{ fontFamily: "'Playfair Display'", fontSize: 36, fontWeight: 600, marginBottom: 16 }}>
-              Moteur de règles <span style={{ color: C.accent }}>26 cantons</span>
-            </h2>
-            <p style={{ color: C.textMuted, fontSize: 16, maxWidth: 560, margin: "0 auto" }}>
-              Chaque canton a ses propres règles. Notre moteur les connaît toutes et génère automatiquement les documents conformes.
-            </p>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 12 }}>
-            {Object.entries(CANTONS_DATA).map(([code, c]) => (
-              <Card key={code} style={{ padding: 16, cursor: "pointer", textAlign: "center",
-                border: selectedCanton === code ? `2px solid ${C.accent}` : `1px solid ${C.border}`,
-                background: selectedCanton === code ? C.accent + "08" : C.bgCard,
-              }} onClick={() => setSelectedCanton(selectedCanton === code ? null : code)}>
-                <div style={{ fontFamily: "'JetBrains Mono'", fontSize: 18, fontWeight: 600, color: C.accent, marginBottom: 4 }}>{code}</div>
-                <div style={{ fontSize: 13, color: C.text, marginBottom: 4 }}>{c.name}</div>
-                <div style={{ display: "flex", gap: 4, justifyContent: "center" }}>
-                  {c.formRequired && <Badge color={C.info} style={{ fontSize: 9, padding: "2px 6px" }}>Form.</Badge>}
-                  {c.penurie && <Badge color={C.error} style={{ fontSize: 9, padding: "2px 6px" }}>Pénurie</Badge>}
-                </div>
-              </Card>
-            ))}
-          </div>
-
-          {selectedCanton && CANTONS_DATA[selectedCanton] && (
-            <Card style={{ marginTop: 24, padding: 32, border: `1px solid ${C.accent}30`, animation: "scaleIn 0.3s ease" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: 16 }}>
-                <div>
-                  <h3 style={{ fontFamily: "'Playfair Display'", fontSize: 24, fontWeight: 600, marginBottom: 8 }}>
-                    {CANTONS_DATA[selectedCanton].name} <span style={{ color: C.textDim }}>({selectedCanton})</span>
-                  </h3>
-                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
-                    <Badge color={CANTONS_DATA[selectedCanton].formRequired ? C.info : C.textDim}>
-                      Formulaire loyer initial: {CANTONS_DATA[selectedCanton].formRequired ? "OBLIGATOIRE" : "Non requis"}
-                    </Badge>
-                    <Badge color={CANTONS_DATA[selectedCanton].penurie ? C.error : C.success}>
-                      {CANTONS_DATA[selectedCanton].penurie ? "Pénurie déclarée" : "Pas de pénurie"}
-                    </Badge>
-                  </div>
-                </div>
-                <div style={{ fontFamily: "'JetBrains Mono'", fontSize: 48, fontWeight: 700, color: C.accent + "15" }}>{selectedCanton}</div>
-              </div>
-
-              <div style={{ marginBottom: 16 }}>
-                <div style={{ fontSize: 13, color: C.textMuted, marginBottom: 8, fontWeight: 600 }}>Dates de résiliation officielles</div>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  {CANTONS_DATA[selectedCanton].dates.map((d, i) => (
-                    <span key={i} style={{ padding: "6px 14px", borderRadius: 8, background: C.bgElevated, fontSize: 13, color: C.text, border: `1px solid ${C.border}` }}>{d}</span>
-                  ))}
-                </div>
-              </div>
-
-              {CANTONS_DATA[selectedCanton].rules && (
-                <div>
-                  <div style={{ fontSize: 13, color: C.textMuted, marginBottom: 8, fontWeight: 600 }}>Règles spécifiques</div>
-                  {CANTONS_DATA[selectedCanton].rules.map((r, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: C.text, marginBottom: 6 }}>
-                      <Icon name="check" size={14} color={C.accent}/> {r}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </Card>
-          )}
-        </section>
-
-        {/* CTA FINAL */}
-        <section style={{ padding: "80px 24px", textAlign: "center", background: C.bgCard, borderTop: `1px solid ${C.border}` }}>
-          <h2 style={{ fontFamily: "'Playfair Display'", fontSize: 32, fontWeight: 600, marginBottom: 16 }}>
-            Prêt à éliminer les frais de régie ?
-          </h2>
-          <p style={{ color: C.textMuted, fontSize: 16, marginBottom: 32, maxWidth: 500, margin: "0 auto 32px" }}>
-            Rejoignez les propriétaires et locataires qui font confiance à immo.cool
-          </p>
-          <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
-            <Btn onClick={() => navigate("app", "owner")} style={{ padding: "16px 36px", fontSize: 16 }}>
-              <Icon name="building" size={18} color={C.bg}/> Je suis propriétaire
-            </Btn>
-            <Btn variant="secondary" onClick={() => navigate("app", "tenant")} style={{ padding: "16px 36px", fontSize: 16 }}>
-              <Icon name="search" size={18} color={C.accent}/> Je cherche un logement
-            </Btn>
-          </div>
-        </section>
-
-        {/* FOOTER */}
-        <footer style={{ padding: "40px 24px", borderTop: `1px solid ${C.border}`, textAlign: "center" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 12 }}>
-            <SwissIcon size={18}/> 
-            <span style={{ fontFamily: "'Playfair Display'", fontSize: 16, fontWeight: 600 }}>immo<span style={{ color: C.accent }}>.cool</span></span>
-          </div>
-          <p style={{ color: C.textDim, fontSize: 12 }}>
-            © 2026 immo.cool — La plateforme immobilière 100% gratuite pour les locataires
-          </p>
-          <p style={{ color: C.textDim, fontSize: 11, marginTop: 4 }}>
-            Conforme CO art. 253-274g · OBLF · 26 réglementations cantonales
-          </p>
-        </footer>
-      </div>
-    );
-  };
-
-  // ═══════════════════════════════════════════
-  // AUTH PAGE
-  // ═══════════════════════════════════════════
-
-  const AuthPage = () => {
-    const [mode, setMode] = useState(authMode);
-    const [role, setRole] = useState("TENANT");
-    const [formData, setFormData] = useState({ email: "", password: "", firstName: "", lastName: "", phone: "" });
-
-    const handleSubmit = () => {
-      // Demo: skip actual auth, go to dashboard
-      navigate("app", role === "TENANT" ? "tenant" : "owner");
-    };
-
-    return (
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-        <div style={{ position: "absolute", top: 24, left: 24, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }} onClick={() => navigate("landing")}>
-          <SwissIcon size={22}/> <span style={{ fontFamily: "'Playfair Display'", fontSize: 18, fontWeight: 600 }}>immo<span style={{ color: C.accent }}>.cool</span></span>
-        </div>
-
-        <Card style={{ maxWidth: 440, width: "100%", padding: 40 }}>
-          <h2 style={{ fontFamily: "'Playfair Display'", fontSize: 28, fontWeight: 600, textAlign: "center", marginBottom: 8 }}>
-            {mode === "login" ? "Connexion" : "Créer un compte"}
-          </h2>
-          <p style={{ textAlign: "center", color: C.textMuted, fontSize: 14, marginBottom: 32 }}>
-            {mode === "login" ? "Accédez à votre espace" : "Rejoignez immo.cool gratuitement"}
-          </p>
-
-          {mode === "register" && (
-            <div style={{ display: "flex", gap: 8, marginBottom: 24 }}>
-              {[{ v: "TENANT", l: "Locataire", i: "user", sub: "Gratuit" }, { v: "LANDLORD", l: "Propriétaire", i: "building", sub: "50% 1er loyer" }].map(r => (
-                <div key={r.v} onClick={() => setRole(r.v)} style={{
-                  flex: 1, padding: "16px 12px", borderRadius: 12, border: `2px solid ${role === r.v ? C.accent : C.border}`,
-                  background: role === r.v ? C.accent + "08" : "transparent", cursor: "pointer", textAlign: "center", transition: "all 0.3s",
-                }}>
-                  <Icon name={r.i} size={22} color={role === r.v ? C.accent : C.textDim}/>
-                  <div style={{ fontSize: 14, fontWeight: 600, marginTop: 6, color: role === r.v ? C.text : C.textMuted }}>{r.l}</div>
-                  <div style={{ fontSize: 11, color: role === r.v ? C.accent : C.textDim, marginTop: 2 }}>{r.sub}</div>
+            
+            {/* Trust badges */}
+            <div style={{display:"flex",justifyContent:"center",gap:32,marginTop:48,opacity:animStep>=3?1:0,transition:"opacity 1s ease 0.8s"}}>
+              {[
+                {icon:Shield,label:"Conforme au droit suisse"},
+                {icon:Lock,label:"Paiements via Stripe"},
+                {icon:Globe,label:"26 cantons couverts"},
+              ].map((b,i)=>(
+                <div key={i} style={{display:"flex",alignItems:"center",gap:8}}>
+                  <b.icon size={14} color={C.textMuted}/>
+                  <span style={{fontFamily:font.body,fontSize:12,color:C.textMuted}}>{b.label}</span>
                 </div>
               ))}
             </div>
-          )}
-
-          {mode === "register" && (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 12px" }}>
-              <Input label="Prénom" placeholder="Jean" value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})}/>
-              <Input label="Nom" placeholder="Dupont" value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})}/>
-            </div>
-          )}
-
-          <Input label="Email" type="email" placeholder="jean@example.ch" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})}/>
-          <Input label="Mot de passe" type="password" placeholder="••••••••" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})}/>
+          </div>
+        </div>
+      </div>
+      
+      {/* PRICING — The disruptive section */}
+      <div style={{padding:"120px 48px",position:"relative"}}>
+        <div style={{position:"absolute",inset:0,background:`linear-gradient(180deg, transparent 0%, ${C.gold}03 50%, transparent 100%)`,pointerEvents:"none"}}/>
+        <div style={{maxWidth:1000,margin:"0 auto",textAlign:"center",position:"relative"}}>
+          <span style={{fontFamily:font.mono,fontSize:11,color:C.gold,letterSpacing:"0.15em",textTransform:"uppercase"}}>Tarification</span>
+          <h2 style={{fontFamily:font.display,fontSize:48,fontWeight:400,margin:"12px 0 60px"}}>
+            Jusqu'à <span style={{fontStyle:"italic",color:C.gold}}>50% moins cher</span> qu'une régie
+          </h2>
           
-          <Btn full onClick={handleSubmit} style={{ marginTop: 8, padding: "14px 24px" }}>
-            {mode === "login" ? "Se connecter" : "Créer mon compte"} <Icon name="arrow" size={16} color={C.bg}/>
-          </Btn>
-
-          <p style={{ textAlign: "center", fontSize: 13, color: C.textMuted, marginTop: 20 }}>
-            {mode === "login" ? "Pas encore de compte ?" : "Déjà un compte ?"}
-            <span onClick={() => setMode(mode === "login" ? "register" : "login")} style={{ color: C.accent, cursor: "pointer", marginLeft: 4, fontWeight: 600 }}>
-              {mode === "login" ? "Créer un compte" : "Se connecter"}
-            </span>
-          </p>
-        </Card>
-      </div>
-    );
-  };
-
-  // ═══════════════════════════════════════════
-  // APP LAYOUT (Sidebar + Content)
-  // ═══════════════════════════════════════════
-
-  const ownerTabs = [
-    { id: "dashboard", icon: "home", label: "Tableau de bord" },
-    { id: "properties", icon: "building", label: "Mes biens" },
-    { id: "search", icon: "search", label: "Recherche" },
-    { id: "inventory", icon: "document", label: "États des lieux" },
-    { id: "artisans", icon: "wrench", label: "Artisans" },
-    { id: "messages", icon: "chat", label: "Messages" },
-    { id: "cantonal", icon: "scale", label: "Règles cantonales" },
-    { id: "payments", icon: "money", label: "Paiements" },
-  ];
-  const tenantTabs = [
-    { id: "dashboard", icon: "home", label: "Tableau de bord" },
-    { id: "search", icon: "search", label: "Chercher" },
-    { id: "applications", icon: "document", label: "Candidatures" },
-    { id: "inventory", icon: "document", label: "États des lieux" },
-    { id: "messages", icon: "chat", label: "Messages" },
-    { id: "cantonal", icon: "scale", label: "Mes droits" },
-  ];
-
-  const AppLayout = () => {
-    const tabs = userType === "owner" ? ownerTabs : tenantTabs;
-
-    return (
-      <div style={{ display: "flex", minHeight: "100vh" }}>
-        {/* SIDEBAR */}
-        <aside style={{
-          width: 240, position: "fixed", top: 0, left: 0, bottom: 0,
-          background: C.bgCard, borderRight: `1px solid ${C.border}`,
-          padding: "20px 12px", display: "flex", flexDirection: "column", zIndex: 50,
-          transform: mobileMenu ? "translateX(0)" : undefined,
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", marginBottom: 24, cursor: "pointer" }} onClick={() => navigate("landing")}>
-            <SwissIcon size={22}/>
-            <span style={{ fontFamily: "'Playfair Display'", fontSize: 18, fontWeight: 600 }}>immo<span style={{ color: C.accent }}>.cool</span></span>
-          </div>
-
-          <div style={{ flex: 1 }}>
-            {tabs.map(t => (
-              <div key={t.id} onClick={() => setTab(t.id)} style={{
-                display: "flex", alignItems: "center", gap: 10, padding: "11px 14px",
-                borderRadius: 10, marginBottom: 2, cursor: "pointer", transition: "all 0.2s",
-                background: tab === t.id ? C.accent + "12" : "transparent",
-                color: tab === t.id ? C.accent : C.textMuted,
-              }}
-                onMouseEnter={e => { if (tab !== t.id) e.currentTarget.style.background = C.bgHover; }}
-                onMouseLeave={e => { if (tab !== t.id) e.currentTarget.style.background = "transparent"; }}
-              >
-                <Icon name={t.icon} size={18} color={tab === t.id ? C.accent : C.textDim}/>
-                <span style={{ fontSize: 13, fontWeight: tab === t.id ? 600 : 400 }}>{t.label}</span>
-                {t.id === "messages" && <span style={{ marginLeft: "auto", width: 8, height: 8, borderRadius: "50%", background: C.accent }}/>}
-              </div>
-            ))}
-          </div>
-
-          <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 16, marginTop: 8 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 14px" }}>
-              <div style={{ width: 34, height: 34, borderRadius: 10, background: C.accent + "20", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Icon name="user" size={16} color={C.accent}/>
-              </div>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 600 }}>Olivier N.</div>
-                <div style={{ fontSize: 11, color: C.textDim }}>{userType === "owner" ? "Propriétaire" : "Locataire"}</div>
-              </div>
-            </div>
-            <div onClick={() => navigate("landing")} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 14px", cursor: "pointer", borderRadius: 8, marginTop: 4, color: C.textDim, fontSize: 13 }}
-              onMouseEnter={e => e.currentTarget.style.background = C.bgHover}
-              onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-              <Icon name="logout" size={16} color={C.textDim}/> Déconnexion
-            </div>
-          </div>
-        </aside>
-
-        {/* MAIN CONTENT */}
-        <main style={{ marginLeft: 240, flex: 1, padding: "32px 40px", minHeight: "100vh" }}>
-          {tab === "dashboard" && <DashboardView/>}
-          {tab === "properties" && <PropertiesView/>}
-          {tab === "search" && <SearchView/>}
-          {tab === "inventory" && <InventoryView/>}
-          {tab === "artisans" && <ArtisansView/>}
-          {tab === "messages" && <MessagesView/>}
-          {tab === "cantonal" && <CantonalView/>}
-          {tab === "payments" && <PaymentsView/>}
-          {tab === "applications" && <ApplicationsView/>}
-        </main>
-      </div>
-    );
-  };
-
-  // ═══════════════════════════════════════════
-  // DASHBOARD VIEW
-  // ═══════════════════════════════════════════
-
-  const DashboardView = () => (
-    <div className="fade-in">
-      <div style={{ marginBottom: 32 }}>
-        <h1 style={{ fontFamily: "'Playfair Display'", fontSize: 28, fontWeight: 600, marginBottom: 4 }}>
-          Bonjour, Olivier 👋
-        </h1>
-        <p style={{ color: C.textMuted, fontSize: 14 }}>
-          {userType === "owner" ? "Voici l'état de vos biens immobiliers" : "Voici votre recherche de logement"}
-        </p>
-      </div>
-
-      {userType === "owner" ? (
-        <>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 32 }}>
-            <StatCard icon="building" label="Biens actifs" value="3" sub="+1 ce mois" color={C.accent}/>
-            <StatCard icon="user" label="Candidatures" value="12" sub="4 nouvelles" color={C.info}/>
-            <StatCard icon="document" label="Baux actifs" value="2" color={C.success}/>
-            <StatCard icon="money" label="Revenus mensuels" value="CHF 4'280" sub="Charges incluses" color={C.accent}/>
-          </div>
-
-          {/* Recent Activity */}
-          <Card style={{ marginBottom: 24 }}>
-            <h3 style={{ fontFamily: "'Playfair Display'", fontSize: 18, fontWeight: 600, marginBottom: 16 }}>Activité récente</h3>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:2}}>
             {[
-              { icon: "user", text: "Nouvelle candidature de Marie Dupont pour 3.5 pièces Delémont", time: "Il y a 2h", color: C.info },
-              { icon: "check", text: "Bail signé — 4.5 pièces Porrentruy avec Pierre Martin", time: "Hier", color: C.success },
-              { icon: "bell", text: "Rappel: état des lieux de sortie prévu le 15 mars", time: "Lundi", color: C.accent },
-              { icon: "wrench", text: "Intervention plomberie confirmée — Müller Plomberie", time: "Ven.", color: C.info },
-            ].map((a, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 0", borderBottom: i < 3 ? `1px solid ${C.border}` : "none" }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: a.color + "12", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <Icon name={a.icon} size={16} color={a.color}/>
+              {role:"Locataire",price:"Gratuit",sub:"pour toujours",icon:Heart,color:C.success,features:["Matching intelligent","Alertes personnalisées","Signature électronique","État des lieux digital","Résiliation assistée"]},
+              {role:"Propriétaire",price:"50%",sub:"du premier loyer",icon:Key,color:C.gold,highlight:true,features:["Publication illimitée","Scoring IA des candidats","Bail automatique conforme","État des lieux digital","Marketplace artisans"]},
+              {role:"Artisan",price:"10%",sub:"par intervention",icon:Wrench,color:C.info,features:["Clients qualifiés","Paiement garanti","Visibilité locale","Gestion des devis","Avis vérifiés"]},
+            ].map((plan,i)=>(
+              <div key={i} style={{background:plan.highlight?C.bgElevated:C.bgCard,border:`1px solid ${plan.highlight?C.gold+"40":C.border}`,borderRadius:i===0?"12px 0 0 12px":i===2?"0 12px 12px 0":"0",padding:"48px 36px",position:"relative",display:"flex",flexDirection:"column"}}>
+                {plan.highlight && <div style={{position:"absolute",top:-1,left:"20%",right:"20%",height:2,background:`linear-gradient(90deg,transparent,${C.gold},transparent)`}}/>}
+                <div style={{width:48,height:48,borderRadius:12,background:`${plan.color}12`,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 20px"}}>
+                  <plan.icon size={22} color={plan.color}/>
                 </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, color: C.text }}>{a.text}</div>
-                  <div style={{ fontSize: 11, color: C.textDim, marginTop: 2 }}>{a.time}</div>
+                <div style={{fontFamily:font.mono,fontSize:11,color:plan.color,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:8}}>{plan.role}</div>
+                <div style={{fontFamily:font.display,fontSize:plan.price==="Gratuit"?42:56,fontWeight:600,color:C.text}}>{plan.price}</div>
+                <div style={{fontFamily:font.body,fontSize:13,color:C.textMuted,marginBottom:32}}>{plan.sub}</div>
+                <div style={{display:"flex",flexDirection:"column",gap:12,flex:1}}>
+                  {plan.features.map((f,j)=>(
+                    <div key={j} style={{display:"flex",alignItems:"center",gap:10,textAlign:"left"}}>
+                      <Check size={14} color={plan.color}/>
+                      <span style={{fontFamily:font.body,fontSize:13,color:C.textSecondary}}>{f}</span>
+                    </div>
+                  ))}
                 </div>
-              </div>
-            ))}
-          </Card>
-        </>
-      ) : (
-        <>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 32 }}>
-            <StatCard icon="search" label="Biens consultés" value="24" sub="Cette semaine" color={C.info}/>
-            <StatCard icon="heart" label="Favoris" value="5" color={C.error}/>
-            <StatCard icon="document" label="Candidatures" value="3" sub="1 en attente" color={C.accent}/>
-            <StatCard icon="star" label="Score profil" value="78/100" sub="Bon profil" color={C.success}/>
-          </div>
-
-          <Card style={{ marginBottom: 24 }}>
-            <h3 style={{ fontFamily: "'Playfair Display'", fontSize: 18, fontWeight: 600, marginBottom: 16 }}>Biens recommandés pour vous</h3>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 16 }}>
-              {DEMO_PROPERTIES.slice(0, 3).map(p => (
-                <PropertyCard key={p.id} property={p} onSelect={() => setSelectedProperty(p)}/>
-              ))}
-            </div>
-          </Card>
-        </>
-      )}
-    </div>
-  );
-
-  // ═══════════════════════════════════════════
-  // PROPERTY CARD (reusable)
-  // ═══════════════════════════════════════════
-
-  const PropertyCard = ({ property: p, onSelect }) => (
-    <Card style={{ padding: 0, overflow: "hidden", cursor: "pointer" }} onClick={onSelect}>
-      <div style={{ height: 140, background: `linear-gradient(135deg, ${C.bgElevated}, ${C.bgHover})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48, position: "relative" }}>
-        {p.img}
-        <Badge color={C.success} style={{ position: "absolute", top: 12, right: 12, fontSize: 10 }}>{p.status === "active" ? "Disponible" : "Loué"}</Badge>
-      </div>
-      <div style={{ padding: 16 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: 8 }}>
-          <h4 style={{ fontSize: 15, fontWeight: 600 }}>{p.title}</h4>
-          <Badge>{p.canton}</Badge>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, color: C.textMuted, marginBottom: 10 }}>
-          <Icon name="location" size={12} color={C.textDim}/> {p.city}
-        </div>
-        <div style={{ display: "flex", gap: 12, fontSize: 12, color: C.textMuted, marginBottom: 12 }}>
-          <span>{p.rooms} pcs</span>
-          <span>{p.surface}m²</span>
-          <span>Ét. {p.floor}</span>
-          {p.balcony && <span>🌇 Balcon</span>}
-        </div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <span style={{ fontFamily: "'Playfair Display'", fontSize: 20, fontWeight: 700, color: C.accent }}>CHF {p.rent.toLocaleString("fr-CH")}</span>
-            <span style={{ fontSize: 12, color: C.textDim }}>/mois</span>
-          </div>
-          <span style={{ fontSize: 11, color: C.textDim }}>+ CHF {p.charges} charges</span>
-        </div>
-      </div>
-    </Card>
-  );
-
-  // ═══════════════════════════════════════════
-  // PROPERTIES VIEW (owner)
-  // ═══════════════════════════════════════════
-
-  const PropertiesView = () => (
-    <div className="fade-in">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 28 }}>
-        <div>
-          <h1 style={{ fontFamily: "'Playfair Display'", fontSize: 24, fontWeight: 600 }}>Mes biens</h1>
-          <p style={{ color: C.textMuted, fontSize: 13 }}>{DEMO_PROPERTIES.length} biens enregistrés</p>
-        </div>
-        <Btn><Icon name="plus" size={16} color={C.bg}/> Ajouter un bien</Btn>
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20 }}>
-        {DEMO_PROPERTIES.map(p => <PropertyCard key={p.id} property={p} onSelect={() => setSelectedProperty(p)}/>)}
-      </div>
-
-      {/* Property detail modal */}
-      {selectedProperty && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
-          onClick={() => setSelectedProperty(null)}>
-          <Card style={{ maxWidth: 600, width: "100%", padding: 0, maxHeight: "80vh", overflowY: "auto" }} onClick={e => e.stopPropagation()}>
-            <div style={{ height: 200, background: `linear-gradient(135deg, ${C.accent}15, ${C.bgElevated})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 64, position: "relative" }}>
-              {selectedProperty.img}
-              <div style={{ position: "absolute", top: 16, right: 16, cursor: "pointer" }} onClick={() => setSelectedProperty(null)}>
-                <Icon name="close" size={24} color={C.textMuted}/>
-              </div>
-            </div>
-            <div style={{ padding: 28 }}>
-              <h2 style={{ fontFamily: "'Playfair Display'", fontSize: 24, fontWeight: 600, marginBottom: 4 }}>{selectedProperty.title}</h2>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, color: C.textMuted, fontSize: 14, marginBottom: 16 }}>
-                <Icon name="location" size={14} color={C.textDim}/> {selectedProperty.city}, {selectedProperty.canton}
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 20 }}>
-                {[
-                  { l: "Loyer", v: `CHF ${selectedProperty.rent}` },
-                  { l: "Charges", v: `CHF ${selectedProperty.charges}` },
-                  { l: "Pièces", v: selectedProperty.rooms },
-                  { l: "Surface", v: `${selectedProperty.surface}m²` },
-                  { l: "Étage", v: selectedProperty.floor },
-                  { l: "Disponible", v: selectedProperty.available },
-                ].map((s, i) => (
-                  <div key={i} style={{ padding: 12, background: C.bgElevated, borderRadius: 10 }}>
-                    <div style={{ fontSize: 11, color: C.textDim, marginBottom: 4 }}>{s.l}</div>
-                    <div style={{ fontSize: 14, fontWeight: 600 }}>{s.v}</div>
-                  </div>
-                ))}
-              </div>
-
-              <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
-                {selectedProperty.balcony && <Badge color={C.success}>Balcon</Badge>}
-                {selectedProperty.parking && <Badge color={C.info}>Parking</Badge>}
-                {selectedProperty.elevator && <Badge color={C.info}>Ascenseur</Badge>}
-              </div>
-
-              {/* Canton info */}
-              {CANTONS_DATA[selectedProperty.canton] && (
-                <Card style={{ background: C.bgElevated, padding: 16, marginBottom: 20, border: `1px solid ${C.accent}20` }}>
-                  <div style={{ fontSize: 12, color: C.accent, fontWeight: 600, marginBottom: 8 }}>
-                    <Icon name="shield" size={14} color={C.accent}/> Réglementation {CANTONS_DATA[selectedProperty.canton].name}
-                  </div>
-                  {CANTONS_DATA[selectedProperty.canton].formRequired && (
-                    <div style={{ fontSize: 12, color: C.info, marginBottom: 4 }}>⚠️ Formulaire de loyer initial obligatoire</div>
-                  )}
-                  <div style={{ fontSize: 12, color: C.textMuted }}>
-                    Dates de résiliation: {CANTONS_DATA[selectedProperty.canton].dates.join(" · ")}
-                  </div>
-                </Card>
-              )}
-
-              <div style={{ display: "flex", gap: 12 }}>
-                <Btn full>Voir les candidatures</Btn>
-                <Btn variant="secondary" full>Modifier</Btn>
-              </div>
-            </div>
-          </Card>
-        </div>
-      )}
-    </div>
-  );
-
-  // ═══════════════════════════════════════════
-  // SEARCH VIEW
-  // ═══════════════════════════════════════════
-
-  const SearchView = () => {
-    const filtered = DEMO_PROPERTIES.filter(p => {
-      if (searchFilters.canton && p.canton !== searchFilters.canton) return false;
-      if (searchFilters.maxRent && p.rent > parseInt(searchFilters.maxRent)) return false;
-      if (searchFilters.minRooms && p.rooms < parseFloat(searchFilters.minRooms)) return false;
-      return true;
-    });
-
-    return (
-      <div className="fade-in">
-        <h1 style={{ fontFamily: "'Playfair Display'", fontSize: 24, fontWeight: 600, marginBottom: 4 }}>
-          {userType === "owner" ? "Rechercher des biens" : "Trouver votre logement"}
-        </h1>
-        <p style={{ color: C.textMuted, fontSize: 13, marginBottom: 24 }}>{filtered.length} biens disponibles</p>
-
-        {/* Filters */}
-        <Card style={{ marginBottom: 24, padding: 20 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12, alignItems: "end" }}>
-            <Select label="Canton" options={[{ value: "", label: "Tous" }, ...Object.entries(CANTONS_DATA).map(([k, v]) => ({ value: k, label: v.name }))]}
-              value={searchFilters.canton} onChange={e => setSearchFilters({...searchFilters, canton: e.target.value})}/>
-            <Input label="Budget max (CHF)" type="number" placeholder="2000" value={searchFilters.maxRent}
-              onChange={e => setSearchFilters({...searchFilters, maxRent: e.target.value})}/>
-            <Input label="Pièces min." type="number" placeholder="3" step="0.5" value={searchFilters.minRooms}
-              onChange={e => setSearchFilters({...searchFilters, minRooms: e.target.value})}/>
-            <Btn variant="secondary" onClick={() => setSearchFilters({ canton: "", maxRent: "", minRooms: "" })} style={{ marginBottom: 16, padding: "12px" }}>
-              Réinitialiser
-            </Btn>
-          </div>
-        </Card>
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20 }}>
-          {filtered.map(p => <PropertyCard key={p.id} property={p} onSelect={() => setSelectedProperty(p)}/>)}
-        </div>
-
-        {filtered.length === 0 && (
-          <Card style={{ textAlign: "center", padding: 60 }}>
-            <Icon name="search" size={40} color={C.textDim}/>
-            <p style={{ color: C.textMuted, marginTop: 16 }}>Aucun bien ne correspond à vos critères</p>
-            <Btn variant="secondary" onClick={() => setSearchFilters({ canton: "", maxRent: "", minRooms: "" })} style={{ marginTop: 16 }}>
-              Voir tous les biens
-            </Btn>
-          </Card>
-        )}
-      </div>
-    );
-  };
-
-  // ═══════════════════════════════════════════
-  // INVENTORY VIEW (État des lieux)
-  // ═══════════════════════════════════════════
-
-  const InventoryView = () => (
-    <div className="fade-in">
-      <h1 style={{ fontFamily: "'Playfair Display'", fontSize: 24, fontWeight: 600, marginBottom: 24 }}>États des lieux</h1>
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 20 }}>
-        {[
-          { property: "3.5 pcs Delémont", type: "Entrée", date: "01.04.2026", status: "Planifié", statusColor: C.info },
-          { property: "4.5 pcs Porrentruy", type: "Sortie", date: "15.03.2026", status: "En cours", statusColor: C.accent },
-          { property: "2.5 pcs Lausanne", type: "Entrée", date: "15.01.2026", status: "Complété", statusColor: C.success },
-        ].map((inv, i) => (
-          <Card key={i} style={{ padding: 20 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: 12 }}>
-              <div>
-                <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>{inv.property}</h3>
-                <div style={{ fontSize: 13, color: C.textMuted }}>État des lieux {inv.type.toLowerCase()}</div>
-              </div>
-              <Badge color={inv.statusColor}>{inv.status}</Badge>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: C.textMuted, marginBottom: 16 }}>
-              <Icon name="calendar" size={14} color={C.textDim}/> {inv.date}
-            </div>
-
-            {/* Room checklist */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 16 }}>
-              {["Cuisine", "Salon", "Chambre 1", "Salle de bain", "Balcon"].map((room, ri) => (
-                <div key={ri} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 10px", borderRadius: 6, background: C.bgElevated, fontSize: 13 }}>
-                  <span>{room}</span>
-                  <div style={{ display: "flex", gap: 6 }}>
-                    {inv.status === "Complété" ? (
-                      <Badge color={C.success} style={{ fontSize: 10, padding: "2px 6px" }}>OK</Badge>
-                    ) : (
-                      <>
-                        <div style={{ width: 8, height: 8, borderRadius: "50%", background: ri < 3 && inv.status === "En cours" ? C.success : C.textDim + "30" }}/>
-                      </>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div style={{ display: "flex", gap: 8 }}>
-              <Btn variant="secondary" style={{ flex: 1, fontSize: 12, padding: "8px" }}>
-                <Icon name="photo" size={14} color={C.accent}/> Photos
-              </Btn>
-              <Btn style={{ flex: 1, fontSize: 12, padding: "8px" }}>
-                <Icon name="document" size={14} color={C.bg}/> Rapport
-              </Btn>
-            </div>
-          </Card>
-        ))}
-      </div>
-    </div>
-  );
-
-  // ═══════════════════════════════════════════
-  // ARTISANS VIEW
-  // ═══════════════════════════════════════════
-
-  const ArtisansView = () => (
-    <div className="fade-in">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-        <div>
-          <h1 style={{ fontFamily: "'Playfair Display'", fontSize: 24, fontWeight: 600 }}>Artisans vérifiés</h1>
-          <p style={{ color: C.textMuted, fontSize: 13 }}>Commission: 10% seulement (vs 30-40% en régie)</p>
-        </div>
-        <Btn variant="secondary"><Icon name="filter" size={16} color={C.accent}/> Filtrer</Btn>
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20 }}>
-        {DEMO_ARTISANS.map(a => (
-          <Card key={a.id} style={{ padding: 24 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: 14 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 12, background: C.accent + "15", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Icon name="wrench" size={22} color={C.accent}/>
-              </div>
-              <Badge>{a.canton}</Badge>
-            </div>
-            <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>{a.name}</h3>
-            <div style={{ fontSize: 13, color: C.accent, marginBottom: 8 }}>{a.specialty}</div>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 13, color: C.textMuted, marginBottom: 14 }}>
-              <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                <Icon name="star" size={14} color="#FBBF24"/> {a.rating}
-              </span>
-              <span>{a.reviews} avis</span>
-              <span>~CHF {a.hourly}/h</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: C.textMuted, marginBottom: 16 }}>
-              <Icon name="location" size={12} color={C.textDim}/> {a.city}
-            </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              <Btn full style={{ fontSize: 12, padding: "10px" }}>Demander un devis</Btn>
-              <Btn variant="ghost" style={{ fontSize: 12, padding: "10px" }}>
-                <Icon name="chat" size={14} color={C.textMuted}/>
-              </Btn>
-            </div>
-          </Card>
-        ))}
-      </div>
-    </div>
-  );
-
-  // ═══════════════════════════════════════════
-  // MESSAGES VIEW
-  // ═══════════════════════════════════════════
-
-  const MessagesView = () => {
-    const [activeMsg, setActiveMsg] = useState(null);
-    return (
-      <div className="fade-in">
-        <h1 style={{ fontFamily: "'Playfair Display'", fontSize: 24, fontWeight: 600, marginBottom: 24 }}>Messages</h1>
-        <div style={{ display: "grid", gridTemplateColumns: activeMsg ? "300px 1fr" : "1fr", gap: 20 }}>
-          <div>
-            {DEMO_MESSAGES.map(m => (
-              <div key={m.id} onClick={() => setActiveMsg(m)} style={{
-                padding: "14px 16px", borderRadius: 12, marginBottom: 8, cursor: "pointer", transition: "all 0.2s",
-                background: activeMsg?.id === m.id ? C.accent + "10" : C.bgCard,
-                border: `1px solid ${activeMsg?.id === m.id ? C.accent + "30" : C.border}`,
-              }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                  <span style={{ fontSize: 14, fontWeight: m.unread ? 700 : 400, color: m.unread ? C.text : C.textMuted }}>{m.from}</span>
-                  <span style={{ fontSize: 11, color: C.textDim }}>{m.time}</span>
-                </div>
-                <div style={{ fontSize: 13, fontWeight: m.unread ? 600 : 400, marginBottom: 4 }}>{m.subject}</div>
-                <div style={{ fontSize: 12, color: C.textDim, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.preview}</div>
-                {m.unread && <div style={{ width: 6, height: 6, borderRadius: "50%", background: C.accent, position: "absolute", top: 16, right: 16 }}/>}
+                <GlowButton variant={plan.highlight?"primary":"secondary"} full style={{marginTop:32}} onClick={()=>onNavigate("register")}>
+                  {plan.highlight?"Commencer maintenant":"S'inscrire"}
+                </GlowButton>
               </div>
             ))}
           </div>
-
-          {activeMsg && (
-            <Card style={{ padding: 28 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 20 }}>
-                <div>
-                  <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 4 }}>{activeMsg.subject}</h3>
-                  <div style={{ fontSize: 13, color: C.textMuted }}>De: {activeMsg.from} · {activeMsg.time}</div>
-                </div>
-              </div>
-              <div style={{ fontSize: 14, lineHeight: 1.8, color: C.textMuted, marginBottom: 24 }}>
-                {activeMsg.preview}
-                <br/><br/>
-                Je reste à disposition pour convenir d'un rendez-vous. Merci pour votre retour rapide.
-                <br/><br/>
-                Cordialement,<br/>
-                {activeMsg.from}
-              </div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <Input placeholder="Votre réponse..." style={{ flex: 1, marginBottom: 0 }}/>
-                <Btn style={{ flexShrink: 0 }}><Icon name="arrow" size={16} color={C.bg}/></Btn>
-              </div>
-            </Card>
-          )}
         </div>
       </div>
-    );
-  };
 
-  // ═══════════════════════════════════════════
-  // CANTONAL VIEW
-  // ═══════════════════════════════════════════
-
-  const CantonalView = () => {
-    const [activeCanton, setActiveCanton] = useState("JU");
-    const c = CANTONS_DATA[activeCanton];
-
-    return (
-      <div className="fade-in">
-        <h1 style={{ fontFamily: "'Playfair Display'", fontSize: 24, fontWeight: 600, marginBottom: 4 }}>
-          {userType === "owner" ? "Règles cantonales" : "Vos droits par canton"}
-        </h1>
-        <p style={{ color: C.textMuted, fontSize: 13, marginBottom: 24 }}>
-          Moteur de conformité automatique — 26 cantons suisses
-        </p>
-
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 24 }}>
-          {Object.entries(CANTONS_DATA).map(([code, cd]) => (
-            <div key={code} onClick={() => setActiveCanton(code)} style={{
-              padding: "8px 16px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 600, transition: "all 0.2s",
-              background: activeCanton === code ? C.accent : C.bgCard,
-              color: activeCanton === code ? C.bg : C.textMuted,
-              border: `1px solid ${activeCanton === code ? C.accent : C.border}`,
-            }}>{code}</div>
+      {/* FEATURES GRID */}
+      <div style={{padding:"80px 48px 120px",maxWidth:1100,margin:"0 auto"}}>
+        <div style={{textAlign:"center",marginBottom:60}}>
+          <span style={{fontFamily:font.mono,fontSize:11,color:C.gold,letterSpacing:"0.15em",textTransform:"uppercase"}}>Fonctionnalités</span>
+          <h2 style={{fontFamily:font.display,fontSize:44,fontWeight:400,margin:"12px 0"}}>
+            Tout est <span style={{fontStyle:"italic",color:C.gold}}>automatisé</span>
+          </h2>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:20}}>
+          {features.map((f,i)=>(
+            <div key={i} style={{background:C.bgCard,border:`1px solid ${C.border}`,borderRadius:12,padding:28,transition:"all 0.3s",cursor:"default"}} onMouseEnter={e=>{e.currentTarget.style.borderColor=f.color+"50";e.currentTarget.style.transform="translateY(-4px)"}} onMouseLeave={e=>{e.currentTarget.style.borderColor=C.border;e.currentTarget.style.transform="translateY(0)"}}>
+              <div style={{width:40,height:40,borderRadius:10,background:`${f.color}12`,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:16}}>
+                <f.icon size={20} color={f.color}/>
+              </div>
+              <div style={{fontFamily:font.body,fontSize:16,fontWeight:600,color:C.text,marginBottom:8}}>{f.title}</div>
+              <div style={{fontFamily:font.body,fontSize:13,color:C.textSecondary,lineHeight:1.6}}>{f.desc}</div>
+            </div>
           ))}
         </div>
+      </div>
 
-        {c && (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 20 }}>
-            <Card>
-              <h3 style={{ fontFamily: "'Playfair Display'", fontSize: 20, fontWeight: 600, marginBottom: 16 }}>
-                {c.name} <span style={{ color: C.textDim }}>({activeCanton})</span>
-              </h3>
+      {/* FOOTER */}
+      <div style={{borderTop:`1px solid ${C.border}`,padding:"40px 48px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div style={{display:"flex",alignItems:"center",gap:4}}>
+          <span style={{fontFamily:font.display,fontSize:20,fontWeight:600}}>immo</span>
+          <span style={{fontFamily:font.display,fontSize:20,fontWeight:600,color:C.gold}}>.</span>
+          <span style={{fontFamily:font.display,fontSize:20,fontWeight:600}}>cool</span>
+          <span style={{fontFamily:font.body,fontSize:12,color:C.textMuted,marginLeft:12}}>© 2026</span>
+        </div>
+        <div style={{display:"flex",gap:24}}>
+          {["CGV","Confidentialité","Contact","API"].map(l=>(
+            <span key={l} style={{fontFamily:font.body,fontSize:12,color:C.textMuted,cursor:"pointer",transition:"color 0.2s"}} onMouseEnter={e=>e.target.style.color=C.gold} onMouseLeave={e=>e.target.style.color=C.textMuted}>{l}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
 
-              <div style={{ marginBottom: 20 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: C.textMuted, marginBottom: 8 }}>Formulaire loyer initial</div>
-                <Badge color={c.formRequired ? C.info : C.textDim} style={{ fontSize: 12 }}>
-                  {c.formRequired ? "OBLIGATOIRE" : "Non requis"}
-                </Badge>
-                {c.formRequired && (
-                  <p style={{ fontSize: 12, color: C.textMuted, marginTop: 6 }}>
-                    ⚠️ Sans ce formulaire, le loyer peut être contesté sans délai
-                  </p>
-                )}
-              </div>
-
-              <div style={{ marginBottom: 20 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: C.textMuted, marginBottom: 8 }}>Pénurie de logements</div>
-                <Badge color={c.penurie ? C.error : C.success}>
-                  {c.penurie ? "Pénurie déclarée" : "Pas de pénurie officielle"}
-                </Badge>
-              </div>
-
+// ═══════════════════════════════════════════════════════════════
+// PAGE: DASHBOARD PROPRIÉTAIRE
+// ═══════════════════════════════════════════════════════════════
+const Dashboard = ({onNavigate,subPage,setSubPage}) => {
+  const [sidebarCollapsed,setSidebarCollapsed] = useState(false);
+  const [notifOpen,setNotifOpen] = useState(false);
+  
+  const menuItems = [
+    {id:"overview",icon:BarChart3,label:"Tableau de bord"},
+    {id:"properties",icon:Building2,label:"Mes biens"},
+    {id:"tenants",icon:Users,label:"Candidatures"},
+    {id:"leases",icon:FileText,label:"Baux"},
+    {id:"etat-lieux",icon:Camera,label:"État des lieux"},
+    {id:"artisans",icon:Wrench,label:"Artisans"},
+    {id:"messages",icon:MessageSquare,label:"Messages"},
+    {id:"settings",icon:Settings,label:"Paramètres"},
+  ];
+  
+  return (
+    <div style={{display:"flex",height:"100vh",background:C.bg,color:C.text,overflow:"hidden"}}>
+      {/* SIDEBAR */}
+      <div style={{width:sidebarCollapsed?72:240,background:C.bgCard,borderRight:`1px solid ${C.border}`,display:"flex",flexDirection:"column",transition:"width 0.3s cubic-bezier(0.4,0,0.2,1)",flexShrink:0,overflow:"hidden"}}>
+        <div style={{padding:"20px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:`1px solid ${C.border}`}}>
+          {!sidebarCollapsed && (
+            <div style={{display:"flex",alignItems:"center",gap:3}}>
+              <span style={{fontFamily:font.display,fontSize:22,fontWeight:600}}>immo</span>
+              <span style={{fontFamily:font.display,fontSize:22,fontWeight:600,color:C.gold}}>.</span>
+              <span style={{fontFamily:font.display,fontSize:22,fontWeight:600}}>cool</span>
+            </div>
+          )}
+          <button onClick={()=>setSidebarCollapsed(!sidebarCollapsed)} style={{background:"none",border:"none",color:C.textMuted,cursor:"pointer",padding:4}}>
+            <Menu size={18}/>
+          </button>
+        </div>
+        
+        <div style={{flex:1,padding:"12px 8px",display:"flex",flexDirection:"column",gap:2}}>
+          {menuItems.map(item=>(
+            <button key={item.id} onClick={()=>setSubPage(item.id)} style={{
+              display:"flex",alignItems:"center",gap:12,padding:sidebarCollapsed?"10px":"10px 12px",
+              background:subPage===item.id?C.goldBg:"transparent",
+              border:"none",borderRadius:8,cursor:"pointer",color:subPage===item.id?C.gold:C.textSecondary,
+              transition:"all 0.2s",width:"100%",justifyContent:sidebarCollapsed?"center":"flex-start",
+            }} onMouseEnter={e=>{if(subPage!==item.id)e.currentTarget.style.background=C.bgHover}} onMouseLeave={e=>{if(subPage!==item.id)e.currentTarget.style.background="transparent"}}>
+              <item.icon size={18}/>
+              {!sidebarCollapsed && <span style={{fontFamily:font.body,fontSize:13,fontWeight:subPage===item.id?600:400,whiteSpace:"nowrap"}}>{item.label}</span>}
+            </button>
+          ))}
+        </div>
+        
+        <div style={{padding:"12px 8px",borderTop:`1px solid ${C.border}`}}>
+          <button onClick={()=>onNavigate("landing")} style={{display:"flex",alignItems:"center",gap:12,padding:sidebarCollapsed?"10px":"10px 12px",background:"none",border:"none",borderRadius:8,cursor:"pointer",color:C.textMuted,width:"100%",justifyContent:sidebarCollapsed?"center":"flex-start"}} onMouseEnter={e=>e.currentTarget.style.color=C.danger} onMouseLeave={e=>e.currentTarget.style.color=C.textMuted}>
+            <LogOut size={18}/>
+            {!sidebarCollapsed && <span style={{fontFamily:font.body,fontSize:13}}>Déconnexion</span>}
+          </button>
+        </div>
+      </div>
+      
+      {/* MAIN CONTENT */}
+      <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
+        {/* TOP BAR */}
+        <div style={{padding:"16px 32px",borderBottom:`1px solid ${C.border}`,display:"flex",justifyContent:"space-between",alignItems:"center",background:C.bgCard}}>
+          <div>
+            <div style={{fontFamily:font.display,fontSize:22,fontWeight:600}}>
+              {menuItems.find(m=>m.id===subPage)?.label || "Tableau de bord"}
+            </div>
+            <div style={{fontFamily:font.body,fontSize:12,color:C.textMuted,marginTop:2}}>
+              {new Date().toLocaleDateString("fr-CH",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}
+            </div>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:16}}>
+            <div style={{position:"relative"}}>
+              <button onClick={()=>setNotifOpen(!notifOpen)} style={{background:C.bgElevated,border:`1px solid ${C.border}`,borderRadius:8,padding:8,cursor:"pointer",color:C.textSecondary,position:"relative"}}>
+                <Bell size={18}/>
+                <div style={{position:"absolute",top:4,right:4,width:8,height:8,borderRadius:"50%",background:C.danger}}/>
+              </button>
+            </div>
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              <div style={{width:36,height:36,borderRadius:10,background:`linear-gradient(135deg,${C.gold}30,${C.purple}30)`,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:font.mono,fontSize:13,fontWeight:600,color:C.gold}}>OB</div>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: C.textMuted, marginBottom: 8 }}>Dates de résiliation</div>
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                  {c.dates.map((d, i) => (
-                    <span key={i} style={{ padding: "6px 12px", borderRadius: 6, background: C.bgElevated, fontSize: 12, border: `1px solid ${C.border}` }}>{d}</span>
+                <div style={{fontFamily:font.body,fontSize:13,fontWeight:500}}>Olivier B.</div>
+                <div style={{fontFamily:font.body,fontSize:11,color:C.textMuted}}>Propriétaire</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* SCROLLABLE CONTENT */}
+        <div style={{flex:1,overflow:"auto",padding:32}}>
+          {subPage === "overview" && <DashboardOverview onNavigate={setSubPage}/>}
+          {subPage === "properties" && <PropertiesView onNavigate={setSubPage}/>}
+          {subPage === "tenants" && <TenantsView/>}
+          {subPage === "leases" && <LeasesView/>}
+          {subPage === "etat-lieux" && <EtatDesLieuxView/>}
+          {subPage === "artisans" && <ArtisansView/>}
+          {subPage === "messages" && <MessagesView/>}
+          {subPage === "settings" && <SettingsView/>}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════
+// SUB-PAGE: OVERVIEW
+// ═══════════════════════════════════════════════════════════════
+const DashboardOverview = ({onNavigate}) => (
+  <div style={{display:"flex",flexDirection:"column",gap:24}}>
+    {/* Stats row */}
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:16}}>
+      <StatCard label="Biens actifs" value="2" sub="sur 3 publiés" icon={Building2} color="gold"/>
+      <StatCard label="Candidatures" value="19" sub="ce mois" icon={Users} trend={27} color="blue"/>
+      <StatCard label="Revenus estimés" value="CHF 4'030" sub="commissions" icon={TrendingUp} trend={9} color="green"/>
+      <StatCard label="Taux de matching" value="87%" sub="candidats qualifiés" icon={Sparkles} color="purple"/>
+    </div>
+    
+    {/* Charts row */}
+    <div style={{display:"grid",gridTemplateColumns:"2fr 1fr",gap:16}}>
+      <div style={{background:C.bgCard,border:`1px solid ${C.border}`,borderRadius:12,padding:24}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+          <div>
+            <div style={{fontFamily:font.body,fontSize:14,fontWeight:600,color:C.text}}>Performance</div>
+            <div style={{fontFamily:font.body,fontSize:12,color:C.textMuted}}>Vues et candidatures sur 6 mois</div>
+          </div>
+          <div style={{display:"flex",gap:16}}>
+            <div style={{display:"flex",alignItems:"center",gap:6}}><div style={{width:8,height:8,borderRadius:"50%",background:C.gold}}/><span style={{fontFamily:font.body,fontSize:11,color:C.textMuted}}>Vues</span></div>
+            <div style={{display:"flex",alignItems:"center",gap:6}}><div style={{width:8,height:8,borderRadius:"50%",background:C.success}}/><span style={{fontFamily:font.body,fontSize:11,color:C.textMuted}}>Candidatures</span></div>
+          </div>
+        </div>
+        <ResponsiveContainer width="100%" height={200}>
+          <AreaChart data={MONTHLY_STATS}>
+            <defs>
+              <linearGradient id="gViews" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={C.gold} stopOpacity={0.3}/><stop offset="100%" stopColor={C.gold} stopOpacity={0}/></linearGradient>
+              <linearGradient id="gApps" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={C.success} stopOpacity={0.3}/><stop offset="100%" stopColor={C.success} stopOpacity={0}/></linearGradient>
+            </defs>
+            <XAxis dataKey="month" tick={{fontSize:11,fill:C.textMuted,fontFamily:font.mono}} axisLine={false} tickLine={false}/>
+            <YAxis tick={{fontSize:11,fill:C.textMuted,fontFamily:font.mono}} axisLine={false} tickLine={false}/>
+            <Tooltip contentStyle={{background:C.bgElevated,border:`1px solid ${C.border}`,borderRadius:8,fontFamily:font.body,fontSize:12}} labelStyle={{color:C.text}} itemStyle={{color:C.textSecondary}}/>
+            <Area type="monotone" dataKey="views" stroke={C.gold} fill="url(#gViews)" strokeWidth={2}/>
+            <Area type="monotone" dataKey="applications" stroke={C.success} fill="url(#gApps)" strokeWidth={2}/>
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+      
+      {/* Legal compliance widget */}
+      <div style={{background:C.bgCard,border:`1px solid ${C.border}`,borderRadius:12,padding:24,display:"flex",flexDirection:"column",gap:16}}>
+        <div style={{fontFamily:font.body,fontSize:14,fontWeight:600,color:C.text}}>Conformité légale</div>
+        {[
+          {label:"Taux hypothécaire",value:"1.25%",status:"ok",date:"01.03.2026"},
+          {label:"IPC (base déc. 2025)",value:"107.1",status:"ok",date:"15.02.2026"},
+          {label:"Formulaire loyer initial",value:"JU — OK",status:"ok",date:"Conforme"},
+          {label:"Délais résiliation",value:"3 mois",status:"warn",date:"Prochain: 30.06"},
+        ].map((ref,i)=>(
+          <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:i<3?`1px solid ${C.border}`:"none"}}>
+            <div>
+              <div style={{fontFamily:font.body,fontSize:12,color:C.textSecondary}}>{ref.label}</div>
+              <div style={{fontFamily:font.mono,fontSize:14,fontWeight:600,color:C.text,marginTop:2}}>{ref.value}</div>
+            </div>
+            <div style={{display:"flex",alignItems:"center",gap:6}}>
+              {ref.status==="ok"?<CheckCircle2 size={14} color={C.success}/>:<AlertTriangle size={14} color={C.gold}/>}
+              <span style={{fontFamily:font.mono,fontSize:10,color:C.textMuted}}>{ref.date}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Recent activity */}
+    <div style={{background:C.bgCard,border:`1px solid ${C.border}`,borderRadius:12,padding:24}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+        <div style={{fontFamily:font.body,fontSize:14,fontWeight:600,color:C.text}}>Activité récente</div>
+        <GlowButton variant="ghost" size="sm">Voir tout</GlowButton>
+      </div>
+      {[
+        {time:"Il y a 2h",text:"Sophie Müller a candidaté pour 3.5 pièces, Delémont",type:"application",icon:Users},
+        {time:"Il y a 5h",text:"Nouveau match: Marc Dubois — Score 87/100",type:"match",icon:Sparkles},
+        {time:"Hier",text:"Bail généré pour 2.5 pièces Porrentruy (réf. JU-2026-0047)",type:"lease",icon:FileText},
+        {time:"23.02",text:"Taux hypothécaire vérifié: 1.25% — conforme",type:"legal",icon:Shield},
+      ].map((a,i)=>(
+        <div key={i} style={{display:"flex",alignItems:"center",gap:14,padding:"12px 0",borderBottom:i<3?`1px solid ${C.border}08`:"none",cursor:"pointer"}} onMouseEnter={e=>e.currentTarget.style.background=C.bgHover} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+          <div style={{width:36,height:36,borderRadius:8,background:a.type==="application"?C.infoBg:a.type==="match"?C.purpleBg:a.type==="lease"?C.successBg:C.goldBg,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+            <a.icon size={16} color={a.type==="application"?C.info:a.type==="match"?C.purple:a.type==="lease"?C.success:C.gold}/>
+          </div>
+          <div style={{flex:1}}>
+            <div style={{fontFamily:font.body,fontSize:13,color:C.text}}>{a.text}</div>
+          </div>
+          <span style={{fontFamily:font.mono,fontSize:11,color:C.textMuted,flexShrink:0}}>{a.time}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+// ═══════════════════════════════════════════════════════════════
+// SUB-PAGE: PROPERTIES
+// ═══════════════════════════════════════════════════════════════
+const PropertiesView = ({onNavigate}) => {
+  const [showCreate,setShowCreate] = useState(false);
+  
+  if(showCreate) return <PropertyCreateForm onBack={()=>setShowCreate(false)}/>;
+  
+  return (
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
+        <div style={{fontFamily:font.body,fontSize:14,color:C.textMuted}}>{MOCK_PROPERTIES.length} biens</div>
+        <GlowButton icon={Plus} onClick={()=>setShowCreate(true)}>Ajouter un bien</GlowButton>
+      </div>
+      <div style={{display:"flex",flexDirection:"column",gap:12}}>
+        {MOCK_PROPERTIES.map(p=>(
+          <div key={p.id} style={{background:C.bgCard,border:`1px solid ${C.border}`,borderRadius:12,padding:20,display:"flex",gap:20,alignItems:"center",cursor:"pointer",transition:"all 0.2s"}} onMouseEnter={e=>e.currentTarget.style.borderColor=C.gold+"40"} onMouseLeave={e=>e.currentTarget.style.borderColor=C.border}>
+            <div style={{width:100,height:80,borderRadius:8,background:`linear-gradient(135deg,${C.bgElevated},${C.bgHover})`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+              <Home size={28} color={C.textMuted}/>
+            </div>
+            <div style={{flex:1}}>
+              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
+                <span style={{fontFamily:font.body,fontSize:15,fontWeight:600,color:C.text}}>{p.title}</span>
+                <Badge color={p.status==="active"?"green":"gold"}>{p.status==="active"?"Actif":"Brouillon"}</Badge>
+              </div>
+              <div style={{display:"flex",alignItems:"center",gap:16,fontFamily:font.body,fontSize:12,color:C.textSecondary}}>
+                <span style={{display:"flex",alignItems:"center",gap:4}}><MapPin size={12}/>{p.city} ({p.canton})</span>
+                <span style={{display:"flex",alignItems:"center",gap:4}}><Bed size={12}/>{p.rooms} pièces</span>
+                <span style={{display:"flex",alignItems:"center",gap:4}}><Square size={12}/>{p.area} m²</span>
+              </div>
+            </div>
+            <div style={{textAlign:"right",flexShrink:0}}>
+              <div style={{fontFamily:font.display,fontSize:24,fontWeight:600,color:C.text}}>CHF {p.rent.toLocaleString()}</div>
+              <div style={{fontFamily:font.body,fontSize:11,color:C.textMuted}}>+ {p.charges} charges</div>
+            </div>
+            <div style={{display:"flex",gap:20,flexShrink:0,paddingLeft:20,borderLeft:`1px solid ${C.border}`}}>
+              <div style={{textAlign:"center"}}>
+                <div style={{fontFamily:font.mono,fontSize:18,fontWeight:700,color:C.info}}>{p.applications}</div>
+                <div style={{fontFamily:font.body,fontSize:10,color:C.textMuted}}>candidatures</div>
+              </div>
+              <div style={{textAlign:"center"}}>
+                <div style={{fontFamily:font.mono,fontSize:18,fontWeight:700,color:C.textSecondary}}>{p.views}</div>
+                <div style={{fontFamily:font.body,fontSize:10,color:C.textMuted}}>vues</div>
+              </div>
+            </div>
+            <ChevronRight size={18} color={C.textMuted}/>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════
+// PROPERTY CREATE FORM
+// ═══════════════════════════════════════════════════════════════
+const PropertyCreateForm = ({onBack}) => {
+  const [step,setStep] = useState(1);
+  const [form,setForm] = useState({type:"APARTMENT",title:"",address:"",npa:"",city:"",canton:"JU",rooms:3.5,area:"",floor:"",totalFloors:"",rent:"",charges:"",deposit:3,balcony:false,parking:false,cellar:false,laundry:false,available:"",description:"",previousRent:""});
+  const set = (k,v) => setForm({...form,[k]:v});
+  const totalSteps = 4;
+  
+  return (
+    <div>
+      <button onClick={onBack} style={{display:"flex",alignItems:"center",gap:6,background:"none",border:"none",color:C.textMuted,cursor:"pointer",fontFamily:font.body,fontSize:13,marginBottom:24,padding:0}} onMouseEnter={e=>e.target.style.color=C.gold} onMouseLeave={e=>e.target.style.color=C.textMuted}>
+        <ChevronLeft size={16}/> Retour aux biens
+      </button>
+      
+      {/* Progress */}
+      <div style={{display:"flex",gap:4,marginBottom:32}}>
+        {Array.from({length:totalSteps}).map((_,i)=>(
+          <div key={i} style={{flex:1,height:3,borderRadius:2,background:i<step?C.gold:C.border,transition:"background 0.3s"}}/>
+        ))}
+      </div>
+      
+      <div style={{maxWidth:640}}>
+        {step===1 && (
+          <div>
+            <h3 style={{fontFamily:font.display,fontSize:28,fontWeight:400,marginBottom:8}}>Informations <span style={{fontStyle:"italic",color:C.gold}}>générales</span></h3>
+            <p style={{fontFamily:font.body,fontSize:13,color:C.textMuted,marginBottom:32}}>Décrivez votre bien pour attirer les meilleurs candidats.</p>
+            <div style={{display:"flex",flexDirection:"column",gap:20}}>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+                <Dropdown label="Type de bien" value={form.type} onChange={v=>set("type",v)} options={[{value:"APARTMENT",label:"Appartement"},{value:"HOUSE",label:"Maison"},{value:"STUDIO",label:"Studio"},{value:"COMMERCIAL",label:"Commercial"}]}/>
+                <Dropdown label="Canton" value={form.canton} onChange={v=>set("canton",v)} options={CANTONS.map(c=>({value:c,label:c}))}/>
+              </div>
+              <Input label="Titre de l'annonce" value={form.title} onChange={v=>set("title",v)} placeholder="Ex: 3.5 pièces lumineux, vue Jura"/>
+              <Input label="Adresse" value={form.address} onChange={v=>set("address",v)} placeholder="Rue et numéro" icon={MapPin}/>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 2fr",gap:16}}>
+                <Input label="NPA" value={form.npa} onChange={v=>set("npa",v)} placeholder="2800"/>
+                <Input label="Ville" value={form.city} onChange={v=>set("city",v)} placeholder="Delémont"/>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {step===2 && (
+          <div>
+            <h3 style={{fontFamily:font.display,fontSize:28,fontWeight:400,marginBottom:8}}>Caractéristiques du <span style={{fontStyle:"italic",color:C.gold}}>bien</span></h3>
+            <p style={{fontFamily:font.body,fontSize:13,color:C.textMuted,marginBottom:32}}>Ces détails sont utilisés pour le matching et l'état des lieux.</p>
+            <div style={{display:"flex",flexDirection:"column",gap:20}}>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:16}}>
+                <Input label="Nombre de pièces" value={form.rooms} onChange={v=>set("rooms",v)} type="number" suffix="pièces" icon={Bed}/>
+                <Input label="Surface" value={form.area} onChange={v=>set("area",v)} type="number" suffix="m²" icon={Square}/>
+                <Input label="Étage" value={form.floor} onChange={v=>set("floor",v)} type="number" suffix={`/ ${form.totalFloors||"?"}`}/>
+              </div>
+              <div>
+                <label style={{fontFamily:font.body,fontSize:12,color:C.textSecondary,fontWeight:500,marginBottom:10,display:"block"}}>Équipements</label>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                  {[{key:"balcony",label:"Balcon / terrasse"},{key:"parking",label:"Place de parc"},{key:"cellar",label:"Cave"},{key:"laundry",label:"Buanderie"}].map(eq=>(
+                    <button key={eq.key} onClick={()=>set(eq.key,!form[eq.key])} style={{display:"flex",alignItems:"center",gap:10,padding:"12px 16px",background:form[eq.key]?C.goldBg:C.bgElevated,border:`1px solid ${form[eq.key]?C.gold+"50":C.border}`,borderRadius:8,cursor:"pointer",color:form[eq.key]?C.gold:C.textSecondary,fontFamily:font.body,fontSize:13,transition:"all 0.2s"}}>
+                      {form[eq.key]?<CheckCircle2 size={16}/>:<CircleDot size={16}/>}
+                      {eq.label}
+                    </button>
                   ))}
                 </div>
               </div>
-            </Card>
-
-            <Card>
-              <h3 style={{ fontFamily: "'Playfair Display'", fontSize: 18, fontWeight: 600, marginBottom: 16 }}>Informations légales</h3>
-              
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                <div style={{ padding: 12, background: C.bgElevated, borderRadius: 8 }}>
-                  <div style={{ fontSize: 12, color: C.accent, fontWeight: 600, marginBottom: 4 }}>Taux hypothécaire de référence</div>
-                  <div style={{ fontSize: 20, fontWeight: 700, fontFamily: "'Playfair Display'" }}>1.25%</div>
-                  <div style={{ fontSize: 11, color: C.textDim }}>Depuis le 01.09.2025 (précédent: 1.50%)</div>
-                </div>
-
-                <div style={{ padding: 12, background: C.bgElevated, borderRadius: 8 }}>
-                  <div style={{ fontSize: 12, color: C.accent, fontWeight: 600, marginBottom: 4 }}>Délai de résiliation</div>
-                  <div style={{ fontSize: 20, fontWeight: 700, fontFamily: "'Playfair Display'" }}>3 mois</div>
-                  <div style={{ fontSize: 11, color: C.textDim }}>Minimum légal (art. 266c CO)</div>
-                </div>
-
-                <div style={{ padding: 12, background: C.bgElevated, borderRadius: 8 }}>
-                  <div style={{ fontSize: 12, color: C.accent, fontWeight: 600, marginBottom: 4 }}>Garantie maximale</div>
-                  <div style={{ fontSize: 20, fontWeight: 700, fontFamily: "'Playfair Display'" }}>3 mois</div>
-                  <div style={{ fontSize: 11, color: C.textDim }}>Loyer + charges, sur compte bloqué (art. 257e CO)</div>
-                </div>
-
-                {c.rules && c.rules.map((r, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: C.text, padding: "8px 12px", background: C.accent + "08", borderRadius: 8, border: `1px solid ${C.accent}15` }}>
-                    <Icon name="shield" size={14} color={C.accent}/> {r}
-                  </div>
-                ))}
+            </div>
+          </div>
+        )}
+        
+        {step===3 && (
+          <div>
+            <h3 style={{fontFamily:font.display,fontSize:28,fontWeight:400,marginBottom:8}}>Conditions <span style={{fontStyle:"italic",color:C.gold}}>financières</span></h3>
+            <p style={{fontFamily:font.body,fontSize:13,color:C.textMuted,marginBottom:32}}>Le formulaire de loyer initial sera généré automatiquement si requis par votre canton.</p>
+            <div style={{display:"flex",flexDirection:"column",gap:20}}>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+                <Input label="Loyer mensuel net" value={form.rent} onChange={v=>set("rent",v)} type="number" suffix="CHF" icon={DollarSign}/>
+                <Input label="Charges mensuelles" value={form.charges} onChange={v=>set("charges",v)} type="number" suffix="CHF"/>
               </div>
-            </Card>
+              <Dropdown label="Garantie de loyer" value={form.deposit} onChange={v=>set("deposit",v)} options={[{value:1,label:"1 mois"},{value:2,label:"2 mois"},{value:3,label:"3 mois (max. légal)"}]}/>
+              <Input label="Loyer du précédent locataire (optionnel)" value={form.previousRent} onChange={v=>set("previousRent",v)} type="number" suffix="CHF" placeholder="Requis pour le formulaire de loyer initial"/>
+              <Input label="Disponible dès" value={form.available} onChange={v=>set("available",v)} type="date" icon={Calendar}/>
+              
+              {/* Commission preview */}
+              {form.rent && (
+                <div style={{background:C.goldBg,border:`1px solid ${C.gold}30`,borderRadius:12,padding:20}}>
+                  <div style={{fontFamily:font.body,fontSize:12,color:C.gold,marginBottom:8}}>Votre commission immo.cool</div>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline"}}>
+                    <span style={{fontFamily:font.display,fontSize:32,fontWeight:600,color:C.text}}>CHF {Math.round(form.rent*0.5).toLocaleString()}</span>
+                    <span style={{fontFamily:font.body,fontSize:12,color:C.textMuted}}>50% du premier loyer — payable après signature</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {step===4 && (
+          <div>
+            <h3 style={{fontFamily:font.display,fontSize:28,fontWeight:400,marginBottom:8}}>Vérification <span style={{fontStyle:"italic",color:C.gold}}>finale</span></h3>
+            <p style={{fontFamily:font.body,fontSize:13,color:C.textMuted,marginBottom:32}}>Vérifiez les informations avant publication. L'état des lieux sera généré automatiquement.</p>
+            
+            {/* Compliance checks */}
+            <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:24}}>
+              {[
+                {ok:true,text:`Canton ${form.canton}: formulaire de loyer initial ${["GE","VD","NE","FR","ZG","ZH"].includes(form.canton)?"obligatoire — sera généré":"non requis"}`},
+                {ok:true,text:`Garantie de loyer: ${form.deposit} mois — conforme à l'art. 257e CO`},
+                {ok:true,text:"Taux hypothécaire de référence: 1.25% — sera inclus dans le bail"},
+                {ok:!!form.previousRent || !["GE","VD","NE","FR","ZG","ZH"].includes(form.canton), text:form.previousRent?"Loyer précédent renseigné — transparence assurée":"Loyer précédent non renseigné"+(["GE","VD","NE","FR","ZG","ZH"].includes(form.canton)?" — recommandé pour votre canton":"")},
+              ].map((c,i)=>(
+                <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",background:c.ok?C.successBg:C.dangerBg,borderRadius:8}}>
+                  {c.ok?<CheckCircle2 size={16} color={C.success}/>:<AlertTriangle size={16} color={C.danger}/>}
+                  <span style={{fontFamily:font.body,fontSize:13,color:c.ok?C.success:C.danger}}>{c.text}</span>
+                </div>
+              ))}
+            </div>
+            
+            <div style={{background:C.bgCard,border:`1px solid ${C.border}`,borderRadius:12,padding:20}}>
+              <div style={{fontFamily:font.body,fontSize:12,color:C.textMuted,marginBottom:12}}>Documents qui seront générés automatiquement</div>
+              {["Bail à loyer conforme au canton "+form.canton, "Formulaire de loyer initial (si requis)", `État des lieux — ${Math.floor(form.rooms)||3} pièces + ${[form.balcony&&"balcon",form.cellar&&"cave",form.laundry&&"buanderie"].filter(Boolean).join(", ")||"aucun annexe"}`, "Quittance de clés"].map((d,i)=>(
+                <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 0",borderBottom:i<3?`1px solid ${C.border}08`:"none"}}>
+                  <FileText size={14} color={C.gold}/>
+                  <span style={{fontFamily:font.body,fontSize:13,color:C.textSecondary}}>{d}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Navigation */}
+        <div style={{display:"flex",justifyContent:"space-between",marginTop:40}}>
+          <GlowButton variant="ghost" onClick={()=>step>1?setStep(step-1):onBack()} icon={ChevronLeft}>
+            {step>1?"Précédent":"Annuler"}
+          </GlowButton>
+          <GlowButton onClick={()=>step<totalSteps?setStep(step+1):null} icon={step===totalSteps?Check:ChevronRight}>
+            {step===totalSteps?"Publier le bien":"Suivant"}
+          </GlowButton>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════
+// SUB-PAGE: TENANTS (MATCHING VIEW)
+// ═══════════════════════════════════════════════════════════════
+const TenantsView = () => {
+  const [selectedTenant,setSelectedTenant] = useState(null);
+  const [selectedProperty,setSelectedProperty] = useState(MOCK_PROPERTIES[0]);
+  const radarData = selectedTenant ? [
+    {axis:"Budget",value:selectedTenant.match.budget,max:30},
+    {axis:"Localisation",value:selectedTenant.match.location,max:25},
+    {axis:"Pièces",value:selectedTenant.match.rooms,max:15},
+    {axis:"Timing",value:selectedTenant.match.timing,max:10},
+    {axis:"Fiabilité",value:selectedTenant.match.reliability,max:15},
+    {axis:"Vérifié",value:selectedTenant.match.verified,max:5},
+  ] : [];
+  
+  return (
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:24,height:"calc(100vh - 140px)"}}>
+      {/* LEFT: Candidate list */}
+      <div style={{display:"flex",flexDirection:"column",gap:12,overflow:"auto"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+          <span style={{fontFamily:font.body,fontSize:13,color:C.textMuted}}>
+            {MOCK_TENANTS.length} candidats pour <strong style={{color:C.text}}>{selectedProperty.title}</strong>
+          </span>
+        </div>
+        
+        {MOCK_TENANTS.map(t=>(
+          <div key={t.id} onClick={()=>setSelectedTenant(t)} style={{
+            background:selectedTenant?.id===t.id?C.bgElevated:C.bgCard,
+            border:`1px solid ${selectedTenant?.id===t.id?C.gold+"40":C.border}`,
+            borderRadius:12, padding:16, cursor:"pointer", transition:"all 0.2s",
+            display:"flex", alignItems:"center", gap:16,
+          }}>
+            <ScoreRing score={t.score} size={52}/>
+            <div style={{flex:1}}>
+              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                <span style={{fontFamily:font.body,fontSize:14,fontWeight:600,color:C.text}}>{t.name}</span>
+                {t.verified && <Badge color="green" size="sm"><Check size={10}/> Vérifié</Badge>}
+              </div>
+              <div style={{fontFamily:font.body,fontSize:12,color:C.textSecondary,marginTop:4}}>
+                {t.job} — {t.city} ({t.canton})
+              </div>
+              <div style={{display:"flex",gap:12,marginTop:6}}>
+                <span style={{fontFamily:font.mono,fontSize:11,color:C.textMuted}}>Budget: CHF {t.budget.toLocaleString()}</span>
+                <span style={{fontFamily:font.mono,fontSize:11,color:C.textMuted}}>Pièces: {t.rooms}</span>
+                <span style={{fontFamily:font.mono,fontSize:11,color:C.textMuted}}>Permis: {t.permits}</span>
+              </div>
+            </div>
+            <ChevronRight size={16} color={C.textMuted}/>
+          </div>
+        ))}
+      </div>
+      
+      {/* RIGHT: Detail panel */}
+      <div style={{background:C.bgCard,border:`1px solid ${C.border}`,borderRadius:12,padding:28,overflow:"auto"}}>
+        {selectedTenant ? (
+          <div>
+            <div style={{display:"flex",alignItems:"center",gap:16,marginBottom:28}}>
+              <div style={{width:64,height:64,borderRadius:16,background:`linear-gradient(135deg,${C.gold}25,${C.purple}25)`,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:font.display,fontSize:24,fontWeight:600,color:C.gold}}>{selectedTenant.photo}</div>
+              <div>
+                <div style={{fontFamily:font.display,fontSize:24,fontWeight:400}}>{selectedTenant.name}</div>
+                <div style={{fontFamily:font.body,fontSize:13,color:C.textSecondary}}>{selectedTenant.job}</div>
+              </div>
+              <div style={{marginLeft:"auto"}}>
+                <ScoreRing score={selectedTenant.score} size={72} strokeWidth={5}/>
+              </div>
+            </div>
+            
+            {/* Radar Chart */}
+            <div style={{marginBottom:24}}>
+              <div style={{fontFamily:font.body,fontSize:13,fontWeight:600,color:C.text,marginBottom:12}}>Analyse du matching</div>
+              <ResponsiveContainer width="100%" height={220}>
+                <RadarChart data={radarData}>
+                  <PolarGrid stroke={C.border}/>
+                  <PolarAngleAxis dataKey="axis" tick={{fontSize:11,fill:C.textSecondary,fontFamily:font.body}}/>
+                  <PolarRadiusAxis tick={false} axisLine={false}/>
+                  <Radar name="Score" dataKey="value" stroke={C.gold} fill={C.gold} fillOpacity={0.15} strokeWidth={2}/>
+                  <Radar name="Maximum" dataKey="max" stroke={C.border} fill="none" strokeWidth={1} strokeDasharray="4 4"/>
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
+            
+            {/* Score breakdown */}
+            <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:24}}>
+              {[
+                {label:"Budget",score:selectedTenant.match.budget,max:30,desc:selectedTenant.income?`CHF ${selectedTenant.income.toLocaleString()}/mois — ratio ${Math.round(selectedProperty.rent/selectedTenant.income*100)}%`:""},
+                {label:"Localisation",score:selectedTenant.match.location,max:25,desc:`${selectedTenant.city} (${selectedTenant.canton})`},
+                {label:"Pièces",score:selectedTenant.match.rooms,max:15,desc:`Recherche: ${selectedTenant.rooms} pièces`},
+                {label:"Timing",score:selectedTenant.match.timing,max:10,desc:`Dispo: ${selectedTenant.moveIn}`},
+                {label:"Fiabilité",score:selectedTenant.match.reliability,max:15,desc:`Score profil`},
+                {label:"Vérification",score:selectedTenant.match.verified,max:5,desc:selectedTenant.verified?"Identité + revenus":"Non vérifié"},
+              ].map((s,i)=>(
+                <div key={i} style={{display:"flex",alignItems:"center",gap:12}}>
+                  <span style={{fontFamily:font.body,fontSize:12,color:C.textSecondary,width:80}}>{s.label}</span>
+                  <div style={{flex:1,height:6,background:C.border,borderRadius:3,overflow:"hidden"}}>
+                    <div style={{width:`${s.score/s.max*100}%`,height:"100%",background:s.score/s.max>=0.8?C.success:s.score/s.max>=0.5?C.gold:C.danger,borderRadius:3,transition:"width 0.8s cubic-bezier(0.4,0,0.2,1)"}}/>
+                  </div>
+                  <span style={{fontFamily:font.mono,fontSize:11,color:C.textMuted,width:40,textAlign:"right"}}>{s.score}/{s.max}</span>
+                </div>
+              ))}
+            </div>
+            
+            <div style={{display:"flex",gap:8}}>
+              <GlowButton icon={Check} full>Accepter la candidature</GlowButton>
+              <GlowButton variant="secondary" icon={MessageSquare}>Contacter</GlowButton>
+            </div>
+          </div>
+        ) : (
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",gap:16}}>
+            <Users size={48} color={C.textMuted}/>
+            <div style={{fontFamily:font.body,fontSize:14,color:C.textMuted}}>Sélectionnez un candidat pour voir le détail</div>
           </div>
         )}
       </div>
-    );
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════
+// SUB-PAGE: ÉTAT DES LIEUX
+// ═══════════════════════════════════════════════════════════════
+const EtatDesLieuxView = () => {
+  const [activeRoom,setActiveRoom] = useState(0);
+  const [items,setItems] = useState({});
+  const ratings = ["Neuf","Bon","Usé","Endommagé"];
+  const ratingColors = [C.success,"#6EE7B7",C.gold,C.danger];
+  
+  const setItemState = (roomIdx,itemIdx,field,value) => {
+    const key = `${roomIdx}-${itemIdx}`;
+    setItems(prev=>({...prev,[key]:{...(prev[key]||{}),[field]:value}}));
   };
-
-  // ═══════════════════════════════════════════
-  // PAYMENTS VIEW
-  // ═══════════════════════════════════════════
-
-  const PaymentsView = () => (
-    <div className="fade-in">
-      <h1 style={{ fontFamily: "'Playfair Display'", fontSize: 24, fontWeight: 600, marginBottom: 24 }}>Paiements</h1>
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 28 }}>
-        <StatCard icon="money" label="Commissions reçues" value="CHF 2'890" color={C.success}/>
-        <StatCard icon="clock" label="En attente" value="CHF 750" color={C.accent}/>
-        <StatCard icon="chart" label="Ce mois" value="CHF 675" sub="+12%" color={C.info}/>
+  const getItemState = (roomIdx,itemIdx) => items[`${roomIdx}-${itemIdx}`] || {};
+  
+  const completedItems = Object.keys(items).filter(k=>items[k].rating!==undefined).length;
+  const totalItems = ETAT_LIEUX_ROOMS.reduce((a,r)=>a+r.items.length,0);
+  
+  return (
+    <div style={{display:"grid",gridTemplateColumns:"240px 1fr",gap:24,height:"calc(100vh - 140px)"}}>
+      {/* Room navigation */}
+      <div style={{background:C.bgCard,border:`1px solid ${C.border}`,borderRadius:12,padding:16,display:"flex",flexDirection:"column",gap:4,overflow:"auto"}}>
+        <div style={{fontFamily:font.body,fontSize:12,color:C.textMuted,marginBottom:8,padding:"0 8px"}}>
+          Progression: {completedItems}/{totalItems}
+        </div>
+        <div style={{height:4,background:C.border,borderRadius:2,marginBottom:12,marginLeft:8,marginRight:8,overflow:"hidden"}}>
+          <div style={{width:`${totalItems?completedItems/totalItems*100:0}%`,height:"100%",background:C.gold,borderRadius:2,transition:"width 0.3s"}}/>
+        </div>
+        
+        {ETAT_LIEUX_ROOMS.map((room,i)=>{
+          const roomCompleted = room.items.filter((_,j)=>items[`${i}-${j}`]?.rating!==undefined).length;
+          return (
+            <button key={i} onClick={()=>setActiveRoom(i)} style={{
+              display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 12px",
+              background:activeRoom===i?C.goldBg:"transparent", border:"none", borderRadius:8,
+              cursor:"pointer", color:activeRoom===i?C.gold:C.textSecondary, transition:"all 0.2s",
+            }}>
+              <span style={{fontFamily:font.body,fontSize:13,fontWeight:activeRoom===i?600:400}}>{room.name}</span>
+              <span style={{fontFamily:font.mono,fontSize:10,color:roomCompleted===room.items.length?C.success:C.textMuted}}>
+                {roomCompleted}/{room.items.length}
+              </span>
+            </button>
+          );
+        })}
+        
+        <div style={{marginTop:"auto",padding:"12px 0 0",borderTop:`1px solid ${C.border}`}}>
+          <GlowButton full icon={Pen} variant={completedItems===totalItems?"primary":"secondary"}>
+            Signer l'état des lieux
+          </GlowButton>
+        </div>
       </div>
+      
+      {/* Room items */}
+      <div style={{overflow:"auto"}}>
+        <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:24}}>
+          <h3 style={{fontFamily:font.display,fontSize:28,fontWeight:400}}>
+            {ETAT_LIEUX_ROOMS[activeRoom].name}
+          </h3>
+          <Badge color="gold">{ETAT_LIEUX_ROOMS[activeRoom].items.length} éléments</Badge>
+        </div>
+        
+        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+          {ETAT_LIEUX_ROOMS[activeRoom].items.map((item,j)=>{
+            const state = getItemState(activeRoom,j);
+            return (
+              <div key={j} style={{background:C.bgCard,border:`1px solid ${state.rating!==undefined?C.gold+"30":C.border}`,borderRadius:10,padding:16,transition:"all 0.2s"}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:state.rating!==undefined?12:0}}>
+                  <span style={{fontFamily:font.body,fontSize:14,fontWeight:500,color:C.text}}>{item}</span>
+                  <div style={{display:"flex",gap:6}}>
+                    {ratings.map((r,k)=>(
+                      <button key={k} onClick={()=>setItemState(activeRoom,j,"rating",k)} style={{
+                        padding:"5px 12px", borderRadius:6, border:`1px solid ${state.rating===k?ratingColors[k]+"60":C.border}`,
+                        background:state.rating===k?`${ratingColors[k]}15`:"transparent",
+                        color:state.rating===k?ratingColors[k]:C.textMuted, cursor:"pointer",
+                        fontFamily:font.body, fontSize:11, fontWeight:state.rating===k?600:400,
+                        transition:"all 0.2s",
+                      }}>{r}</button>
+                    ))}
+                  </div>
+                </div>
+                
+                {state.rating !== undefined && (
+                  <div style={{display:"flex",gap:12,alignItems:"flex-start"}}>
+                    <div style={{flex:1}}>
+                      <input placeholder="Remarques (optionnel)" value={state.note||""} onChange={e=>setItemState(activeRoom,j,"note",e.target.value)} style={{
+                        width:"100%", background:C.bgElevated, border:`1px solid ${C.border}`, borderRadius:6,
+                        padding:"8px 12px", fontFamily:font.body, fontSize:12, color:C.text, outline:"none",
+                      }} onFocus={e=>e.target.style.borderColor=C.gold+"60"} onBlur={e=>e.target.style.borderColor=C.border}/>
+                    </div>
+                    <button style={{display:"flex",alignItems:"center",gap:4,padding:"8px 14px",background:C.bgElevated,border:`1px solid ${C.border}`,borderRadius:6,cursor:"pointer",color:C.textMuted,fontFamily:font.body,fontSize:11}} onMouseEnter={e=>e.currentTarget.style.borderColor=C.gold} onMouseLeave={e=>e.currentTarget.style.borderColor=C.border}>
+                      <Camera size={14}/> Photo
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
 
-      <Card>
-        <h3 style={{ fontFamily: "'Playfair Display'", fontSize: 18, fontWeight: 600, marginBottom: 16 }}>Historique</h3>
+// ═══════════════════════════════════════════════════════════════
+// SUB-PAGE: LEASES
+// ═══════════════════════════════════════════════════════════════
+const LeasesView = () => (
+  <div>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
+      <div style={{fontFamily:font.body,fontSize:14,color:C.textMuted}}>2 baux actifs</div>
+    </div>
+    {[
+      {ref:"JU-2026-0047",tenant:"Marc Dubois",property:"2.5 pièces, Porrentruy",start:"15.03.2026",rent:"CHF 980",status:"active",signed:true},
+      {ref:"JU-2026-0031",tenant:"Sophie Müller",property:"3.5 pièces, Delémont",start:"01.04.2026",rent:"CHF 1'350",status:"pending",signed:false},
+    ].map((l,i)=>(
+      <div key={i} style={{background:C.bgCard,border:`1px solid ${C.border}`,borderRadius:12,padding:20,marginBottom:12,cursor:"pointer",transition:"border-color 0.2s"}} onMouseEnter={e=>e.currentTarget.style.borderColor=C.gold+"40"} onMouseLeave={e=>e.currentTarget.style.borderColor=C.border}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+          <div>
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
+              <span style={{fontFamily:font.mono,fontSize:12,color:C.gold}}>{l.ref}</span>
+              <Badge color={l.status==="active"?"green":"gold"}>{l.status==="active"?"Actif":"En attente signature"}</Badge>
+            </div>
+            <div style={{fontFamily:font.body,fontSize:15,fontWeight:600,color:C.text}}>{l.property}</div>
+            <div style={{fontFamily:font.body,fontSize:13,color:C.textSecondary,marginTop:4}}>Locataire: {l.tenant} — Début: {l.start}</div>
+          </div>
+          <div style={{textAlign:"right"}}>
+            <div style={{fontFamily:font.display,fontSize:22,fontWeight:600}}>{l.rent}</div>
+            <div style={{fontFamily:font.body,fontSize:11,color:C.textMuted}}>loyer net/mois</div>
+          </div>
+        </div>
+        <div style={{display:"flex",gap:8,marginTop:16}}>
+          <GlowButton variant="secondary" size="sm" icon={FileText}>Voir le bail</GlowButton>
+          <GlowButton variant="ghost" size="sm" icon={Camera}>État des lieux</GlowButton>
+          {!l.signed && <GlowButton size="sm" icon={Pen}>Signer</GlowButton>}
+        </div>
+      </div>
+    ))}
+    
+    {/* Legal reference box */}
+    <div style={{background:C.bgCard,border:`1px solid ${C.border}`,borderRadius:12,padding:20,marginTop:24}}>
+      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16}}>
+        <Shield size={16} color={C.gold}/>
+        <span style={{fontFamily:font.body,fontSize:13,fontWeight:600,color:C.text}}>Références légales incluses dans vos baux</span>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:16}}>
         {[
-          { desc: "Commission bail — 3.5 pcs Delémont", amount: "CHF 675", date: "15.02.2026", status: "Payé", color: C.success },
-          { desc: "Commission bail — 4.5 pcs Porrentruy", amount: "CHF 790", date: "01.02.2026", status: "Payé", color: C.success },
-          { desc: "Intervention plomberie — Müller", amount: "CHF 85", date: "20.01.2026", status: "Payé", color: C.success },
-          { desc: "Commission bail — 2.5 pcs Lausanne", amount: "CHF 840", date: "15.01.2026", status: "Payé", color: C.success },
-          { desc: "Commission bail — Studio Genève", amount: "CHF 750", date: "En attente", status: "En attente", color: C.accent },
-        ].map((p, i) => (
-          <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 0", borderBottom: i < 4 ? `1px solid ${C.border}` : "none" }}>
-            <div>
-              <div style={{ fontSize: 14 }}>{p.desc}</div>
-              <div style={{ fontSize: 12, color: C.textDim }}>{p.date}</div>
-            </div>
-            <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: 15, fontWeight: 600, fontFamily: "'JetBrains Mono'" }}>{p.amount}</div>
-              <Badge color={p.color} style={{ fontSize: 10 }}>{p.status}</Badge>
-            </div>
+          {label:"Taux hypothécaire de réf.",value:"1.25%",source:"OFL — Mise à jour trimestrielle",icon:TrendingUp},
+          {label:"IPC (base déc. 2025)",value:"107.1 pts",source:"OFS — Mise à jour mensuelle",icon:BarChart3},
+          {label:"Art. OBLF applicable",value:"Art. 12-13, 16, 19",source:"Conformité automatique",icon:FileText},
+        ].map((r,i)=>(
+          <div key={i} style={{padding:16,background:C.bgElevated,borderRadius:8,border:`1px solid ${C.border}`}}>
+            <r.icon size={16} color={C.gold} style={{marginBottom:8}}/>
+            <div style={{fontFamily:font.body,fontSize:11,color:C.textMuted}}>{r.label}</div>
+            <div style={{fontFamily:font.mono,fontSize:18,fontWeight:700,color:C.text,margin:"4px 0"}}>{r.value}</div>
+            <div style={{fontFamily:font.body,fontSize:10,color:C.textMuted}}>{r.source}</div>
           </div>
         ))}
-      </Card>
+      </div>
     </div>
-  );
+  </div>
+);
 
-  // ═══════════════════════════════════════════
-  // APPLICATIONS VIEW (tenant)
-  // ═══════════════════════════════════════════
+// Placeholder sub-pages
+const ArtisansView = () => (
+  <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:400,gap:16}}>
+    <Wrench size={48} color={C.textMuted}/>
+    <div style={{fontFamily:font.display,fontSize:24,color:C.text}}>Marketplace artisans</div>
+    <div style={{fontFamily:font.body,fontSize:14,color:C.textMuted}}>Plombiers, électriciens, peintres — bientôt disponible</div>
+    <Badge color="gold">Prochainement</Badge>
+  </div>
+);
+const MessagesView = () => (
+  <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:400,gap:16}}>
+    <MessageSquare size={48} color={C.textMuted}/>
+    <div style={{fontFamily:font.display,fontSize:24,color:C.text}}>Messagerie</div>
+    <div style={{fontFamily:font.body,fontSize:14,color:C.textMuted}}>Communication propriétaire-locataire sécurisée</div>
+    <Badge color="gold">Prochainement</Badge>
+  </div>
+);
+const SettingsView = () => (
+  <div style={{display:"flex",flexDirection:"column",gap:20,maxWidth:600}}>
+    <h3 style={{fontFamily:font.display,fontSize:28,fontWeight:400}}>Paramètres</h3>
+    <Input label="Nom complet" value="Olivier Botteron" onChange={()=>{}}/>
+    <Input label="Email" value="olivier@immo.cool" onChange={()=>{}} icon={Mail}/>
+    <Input label="Téléphone" value="+41 79 XXX XX XX" onChange={()=>{}} icon={Phone}/>
+    <div style={{padding:16,background:C.goldBg,border:`1px solid ${C.gold}30`,borderRadius:10,display:"flex",alignItems:"center",gap:12}}>
+      <Award size={20} color={C.gold}/>
+      <div>
+        <div style={{fontFamily:font.body,fontSize:13,fontWeight:600,color:C.gold}}>Stripe Connect</div>
+        <div style={{fontFamily:font.body,fontSize:12,color:C.textSecondary}}>Compte connecté — prêt à recevoir des paiements</div>
+      </div>
+      <Badge color="green">Actif</Badge>
+    </div>
+  </div>
+);
 
-  const ApplicationsView = () => (
-    <div className="fade-in">
-      <h1 style={{ fontFamily: "'Playfair Display'", fontSize: 24, fontWeight: 600, marginBottom: 24 }}>Mes candidatures</h1>
-
-      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        {[
-          { property: "3.5 pcs Delémont", canton: "JU", rent: 1350, status: "Présélectionné", color: C.accent, score: 87, date: "12.02.2026" },
-          { property: "4.5 pcs Porrentruy", canton: "JU", rent: 1580, status: "En attente", color: C.info, score: 72, date: "10.02.2026" },
-          { property: "2.5 pcs Lausanne", canton: "VD", rent: 1680, status: "Refusé", color: C.error, score: 54, date: "05.02.2026" },
-        ].map((a, i) => (
-          <Card key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                <h3 style={{ fontSize: 16, fontWeight: 600 }}>{a.property}</h3>
-                <Badge>{a.canton}</Badge>
-              </div>
-              <div style={{ fontSize: 13, color: C.textMuted }}>CHF {a.rent.toLocaleString("fr-CH")}/mois · Candidature du {a.date}</div>
+// ═══════════════════════════════════════════════════════════════
+// AUTH PAGES
+// ═══════════════════════════════════════════════════════════════
+const AuthPage = ({mode,onNavigate}) => {
+  const [email,setEmail] = useState("");
+  const [pass,setPass] = useState("");
+  const [role,setRole] = useState("LANDLORD");
+  const [firstName,setFirstName] = useState("");
+  const [lastName,setLastName] = useState("");
+  const isRegister = mode==="register";
+  
+  return (
+    <div style={{minHeight:"100vh",background:C.bg,display:"flex"}}>
+      {/* Left: form */}
+      <div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center",padding:"60px 80px",maxWidth:560}}>
+        <button onClick={()=>onNavigate("landing")} style={{display:"flex",alignItems:"center",gap:3,background:"none",border:"none",cursor:"pointer",marginBottom:48}}>
+          <span style={{fontFamily:font.display,fontSize:24,fontWeight:600,color:C.text}}>immo</span>
+          <span style={{fontFamily:font.display,fontSize:24,fontWeight:600,color:C.gold}}>.</span>
+          <span style={{fontFamily:font.display,fontSize:24,fontWeight:600,color:C.text}}>cool</span>
+        </button>
+        
+        <h2 style={{fontFamily:font.display,fontSize:36,fontWeight:400,marginBottom:8}}>
+          {isRegister?"Créer un":"Accédez à votre"} <span style={{fontStyle:"italic",color:C.gold}}>compte</span>
+        </h2>
+        <p style={{fontFamily:font.body,fontSize:14,color:C.textMuted,marginBottom:36}}>
+          {isRegister?"Commencez gratuitement — aucun engagement.":"Heureux de vous revoir."}
+        </p>
+        
+        {isRegister && (
+          <div style={{marginBottom:24}}>
+            <label style={{fontFamily:font.body,fontSize:12,color:C.textSecondary,fontWeight:500,marginBottom:10,display:"block"}}>Je suis</label>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+              {[{value:"LANDLORD",label:"Propriétaire",icon:Key},{value:"TENANT",label:"Locataire",icon:Search},{value:"ARTISAN",label:"Artisan",icon:Wrench}].map(r=>(
+                <button key={r.value} onClick={()=>setRole(r.value)} style={{
+                  padding:"14px",background:role===r.value?C.goldBg:C.bgElevated,
+                  border:`1px solid ${role===r.value?C.gold+"50":C.border}`,borderRadius:10,
+                  cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:8,
+                  color:role===r.value?C.gold:C.textSecondary,transition:"all 0.2s",
+                }}>
+                  <r.icon size={20}/>
+                  <span style={{fontFamily:font.body,fontSize:12,fontWeight:role===r.value?600:400}}>{r.label}</span>
+                  {r.value==="TENANT" && <span style={{fontFamily:font.mono,fontSize:9,color:C.success}}>GRATUIT</span>}
+                </button>
+              ))}
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-              <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 11, color: C.textDim, marginBottom: 2 }}>Match</div>
-                <div style={{ fontFamily: "'JetBrains Mono'", fontSize: 18, fontWeight: 700, color: a.score >= 70 ? C.success : C.accent }}>{a.score}%</div>
-              </div>
-              <Badge color={a.color} style={{ fontSize: 12, padding: "6px 12px" }}>{a.status}</Badge>
+          </div>
+        )}
+        
+        <div style={{display:"flex",flexDirection:"column",gap:16}}>
+          {isRegister && (
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              <Input label="Prénom" value={firstName} onChange={setFirstName} placeholder="Olivier"/>
+              <Input label="Nom" value={lastName} onChange={setLastName} placeholder="Botteron"/>
             </div>
-          </Card>
-        ))}
+          )}
+          <Input label="Email" value={email} onChange={setEmail} type="email" placeholder="olivier@example.ch" icon={Mail}/>
+          <Input label="Mot de passe" value={pass} onChange={setPass} type="password" placeholder="Min. 8 caractères" icon={Lock}/>
+          
+          <GlowButton full size="lg" onClick={()=>onNavigate("dashboard")} icon={ArrowRight}>
+            {isRegister?"Créer mon compte":"Se connecter"}
+          </GlowButton>
+          
+          <div style={{textAlign:"center",marginTop:8}}>
+            <span style={{fontFamily:font.body,fontSize:13,color:C.textMuted}}>
+              {isRegister?"Déjà un compte ? ":"Pas encore de compte ? "}
+            </span>
+            <span onClick={()=>onNavigate(isRegister?"login":"register")} style={{fontFamily:font.body,fontSize:13,color:C.gold,cursor:"pointer",fontWeight:600}}>
+              {isRegister?"Connexion":"S'inscrire"}
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      {/* Right: visual */}
+      <div style={{flex:1,background:`linear-gradient(135deg,${C.bgCard},${C.bgElevated})`,display:"flex",alignItems:"center",justifyContent:"center",position:"relative",overflow:"hidden"}}>
+        <div style={{position:"absolute",top:"20%",right:"10%",width:300,height:300,borderRadius:"50%",background:`radial-gradient(circle,${C.gold}08,transparent)`,pointerEvents:"none"}}/>
+        <div style={{position:"absolute",bottom:"10%",left:"20%",width:400,height:400,borderRadius:"50%",background:`radial-gradient(circle,${C.purple}05,transparent)`,pointerEvents:"none"}}/>
+        
+        <div style={{textAlign:"center",maxWidth:400,position:"relative",zIndex:2}}>
+          <div style={{fontFamily:font.display,fontSize:72,fontWeight:300,color:C.gold,lineHeight:1,marginBottom:24}}>50%</div>
+          <div style={{fontFamily:font.body,fontSize:18,color:C.text,marginBottom:8}}>moins cher qu'une régie</div>
+          <div style={{fontFamily:font.body,fontSize:14,color:C.textMuted,lineHeight:1.7}}>
+            Bail conforme, matching IA, état des lieux digital — tout automatisé pour les 26 cantons suisses.
+          </div>
+          <div style={{display:"flex",justifyContent:"center",gap:24,marginTop:32}}>
+            {[{n:"2'847",l:"Locataires"},{n:"312",l:"Propriétaires"},{n:"26",l:"Cantons"}].map((s,i)=>(
+              <div key={i} style={{textAlign:"center"}}>
+                <div style={{fontFamily:font.mono,fontSize:20,fontWeight:700,color:C.gold}}>{s.n}</div>
+                <div style={{fontFamily:font.body,fontSize:11,color:C.textMuted}}>{s.l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
+};
 
-  // ═══════════════════════════════════════════
-  // RENDER
-  // ═══════════════════════════════════════════
-
+// ═══════════════════════════════════════════════════════════════
+// MAIN APP — ROUTER
+// ═══════════════════════════════════════════════════════════════
+export default function ImmoCoolPlatform() {
+  const [page,setPage] = useState("landing");
+  const [subPage,setSubPage] = useState("overview");
+  
+  const navigate = useCallback((p) => {
+    setPage(p);
+    if(p==="dashboard") setSubPage("overview");
+  }, []);
+  
   return (
-    <>
-      <style dangerouslySetInnerHTML={{ __html: globalCSS }}/>
-      {view === "landing" && <Landing/>}
-      {view === "auth" && <AuthPage/>}
-      {view === "app" && <AppLayout/>}
-    </>
+    <div style={{fontFamily:font.body}}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+        * { margin:0; padding:0; box-sizing:border-box; }
+        html, body { background:${C.bg}; }
+        ::selection { background:${C.gold}30; color:${C.text}; }
+        ::-webkit-scrollbar { width:6px; }
+        ::-webkit-scrollbar-track { background:${C.bg}; }
+        ::-webkit-scrollbar-thumb { background:${C.border}; border-radius:3px; }
+        ::-webkit-scrollbar-thumb:hover { background:${C.borderHover}; }
+        input::placeholder { color:${C.textMuted}; }
+        select option { background:${C.bg}; color:${C.text}; }
+      `}</style>
+      
+      {page === "landing" && <Landing onNavigate={navigate}/>}
+      {page === "login" && <AuthPage mode="login" onNavigate={navigate}/>}
+      {page === "register" && <AuthPage mode="register" onNavigate={navigate}/>}
+      {page === "dashboard" && <Dashboard onNavigate={navigate} subPage={subPage} setSubPage={setSubPage}/>}
+    </div>
   );
 }
