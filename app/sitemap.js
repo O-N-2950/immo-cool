@@ -8,6 +8,8 @@ export default function sitemap() {
   
   const pages = [
     { url: base, lastModified: now, changeFrequency: "weekly", priority: 1.0 },
+    { url: `${base}/outils`, lastModified: now, changeFrequency: "monthly", priority: 0.95 },
+    { url: `${base}/demande`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
   ];
   
   TOOLS.forEach(tool => {

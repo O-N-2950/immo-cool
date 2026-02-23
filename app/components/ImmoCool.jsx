@@ -407,9 +407,41 @@ const Landing = ({nav,lang="fr",setLang,t,mobile,showEstimator,setShowEstimator}
         </div>
       </div>
 
-      <div style={{borderTop:`1px solid ${C.border}`,padding:"32px 48px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+      {/* FREE TOOLS */}
+      <div style={{padding:mobile?"40px 20px 60px":"60px 48px 80px",maxWidth:1100,margin:"0 auto"}}>
+        <div style={{textAlign:"center",marginBottom:36}}>
+          <span style={{fontFamily:F.mono,fontSize:11,color:C.gold,letterSpacing:"0.15em",textTransform:"uppercase"}}>Outils gratuits</span>
+          <h2 style={{fontFamily:F.display,fontSize:mobile?32:44,fontWeight:400,margin:"12px 0"}}>Sans inscription. <span style={{fontStyle:"italic",color:C.gold}}>Sans frais.</span></h2>
+          <p style={{fontFamily:F.body,fontSize:15,color:C.textSecondary,maxWidth:500,margin:"0 auto"}}>Tout ce dont vous avez besoin pour votre bail — conformes au droit suisse.</p>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:mobile?"1fr":"repeat(3, 1fr)",gap:12}}>
+          {[{h:"/outils/contestation",e:"⚠️",t:"Contestation de loyer",d:"Votre loyer est-il trop élevé ? Analyse IA gratuite.",tag:"🔥 Populaire",tc:"#F87171"},
+            {h:"/outils/bail-gratuit",e:"📄",t:"Bail gratuit",d:"Bail conforme 26 cantons en 5 minutes.",tag:"Essentiel",tc:C.gold},
+            {h:"/outils/resiliation",e:"✉️",t:"Résiliation",d:"Lettre prête à envoyer par recommandé.",tag:"Rapide",tc:"#60A5FA"},
+            {h:"/outils/calculateur-loyer",e:"✨",t:"Calculateur IA",d:"Le juste prix de votre loyer.",tag:"IA",tc:"#A78BFA"},
+            {h:"/outils/etat-des-lieux",e:"🏠",t:"État des lieux",d:"PDF professionnel dynamique.",tag:"PDF",tc:C.success},
+            {h:"/outils/assistant-ia",e:"💬",t:"Assistant juridique",d:"Expert droit du bail 24/7.",tag:"IA 24/7",tc:"#A78BFA"},
+          ].map((tool,i)=>(
+            <a key={i} href={tool.h} style={{background:C.bgCard,border:`1px solid ${C.border}`,borderRadius:12,padding:18,textDecoration:"none",color:C.text,display:"block",transition:"all 0.25s"}} onMouseEnter={e=>{e.currentTarget.style.borderColor=C.gold+"40";e.currentTarget.style.transform="translateY(-2px)"}} onMouseLeave={e=>{e.currentTarget.style.borderColor=C.border;e.currentTarget.style.transform="none"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                <span style={{fontSize:22}}>{tool.e}</span>
+                <span style={{fontFamily:F.mono,fontSize:9,color:tool.tc,background:`${tool.tc}15`,padding:"2px 8px",borderRadius:10}}>{tool.tag}</span>
+              </div>
+              <div style={{fontFamily:F.body,fontSize:14,fontWeight:600,marginBottom:4}}>{tool.t}</div>
+              <div style={{fontFamily:F.body,fontSize:12,color:C.textSecondary}}>{tool.d}</div>
+            </a>
+          ))}
+        </div>
+        <div style={{textAlign:"center",marginTop:20}}>
+          <a href="/demande" style={{fontFamily:F.body,fontSize:13,color:C.gold,textDecoration:"none",display:"inline-flex",alignItems:"center",gap:6}}>
+            📣 Locataire ? Publiez votre recherche gratuitement →
+          </a>
+        </div>
+      </div>
+
+      <div style={{borderTop:`1px solid ${C.border}`,padding:"32px 48px",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
         <div style={{display:"flex",alignItems:"center"}}><span style={{fontFamily:F.display,fontSize:20,fontWeight:600}}>immo</span><span style={{fontFamily:F.display,fontSize:20,fontWeight:600,color:C.gold}}>.</span><span style={{fontFamily:F.display,fontSize:20,fontWeight:600}}>cool</span><span style={{fontFamily:F.body,fontSize:12,color:C.textMuted,marginLeft:12}}>© 2026</span></div>
-        <div style={{display:"flex",gap:24}}>{["CGV","Confidentialité","Contact"].map(l=>(<span key={l} style={{fontFamily:F.body,fontSize:12,color:C.textMuted,cursor:"pointer"}}>{l}</span>))}</div>
+        <div style={{display:"flex",gap:16,flexWrap:"wrap"}}>{[{l:"Outils gratuits",h:"/outils"},{l:"Demandes locataires",h:"/demande"},{l:"CGV",h:"#"},{l:"Confidentialité",h:"#"},{l:"Contact",h:"#"}].map(x=>(<a key={x.l} href={x.h} style={{fontFamily:F.body,fontSize:12,color:C.textMuted,textDecoration:"none"}}>{x.l}</a>))}</div>
       </div>
     </div>
   );
