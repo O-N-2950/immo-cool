@@ -335,6 +335,7 @@ const TenantSearch = ({nav}) => {
   const [filters,setFilters]=useState({canton:"JU",minRooms:"",maxRent:"",sort:"score"});
   const [applied,setApplied]=useState({});
   const [showApply,setShowApply]=useState(null);
+  const [showVisit,setShowVisit]=useState(null);
   
   const filtered = PROPERTIES.filter(p=>p.status==="active");
   
@@ -348,6 +349,7 @@ const TenantSearch = ({nav}) => {
           <span style={{fontFamily:F.body,fontSize:13,color:C.textSecondary}}>Recherche d'appartement</span>
         </div>
         <div style={{display:"flex",gap:8}}>
+          <Btn v="ghost" s="sm" onClick={()=>nav("tenant-dash")}>Mon espace</Btn>
           <Btn v="ghost" s="sm" onClick={()=>nav("login")}>Connexion</Btn>
           <Btn s="sm" onClick={()=>nav("register")}>Mon compte</Btn>
         </div>
@@ -475,10 +477,12 @@ const TenantSearch = ({nav}) => {
                   </div>
                   <div style={{fontFamily:F.body,fontSize:11,color:C.textMuted,marginTop:12}}><Shield size={11}/> 100% gratuit — aucun frais pour les locataires</div>
                 </div>
+              ) : showVisit===sel.id ? (
+                <VisitScheduler property={sel} onClose={()=>setShowVisit(null)} onConfirm={()=>setShowVisit(null)}/>
               ) : (
                 <div style={{display:"flex",gap:8}}>
                   <Btn icon={Send} s="lg" onClick={()=>setShowApply(sel.id)}>Postuler gratuitement</Btn>
-                  <Btn v="secondary" s="lg" icon={Calendar}>Demander une visite</Btn>
+                  <Btn v="secondary" s="lg" icon={Calendar} onClick={()=>setShowVisit(sel.id)}>Demander une visite</Btn>
                 </div>
               )}
             </div>
@@ -515,7 +519,7 @@ const Auth = ({mode,nav}) => {
           {reg&&<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}><Inp label="Prénom" value={fn} onChange={setFn} ph="Olivier"/><Inp label="Nom" value={ln} onChange={setLn} ph="Botteron"/></div>}
           <Inp label="Email" value={email} onChange={setEmail} type="email" ph="olivier@example.ch" icon={Mail}/>
           <Inp label="Mot de passe" value={pass} onChange={setPass} type="password" ph="Min. 8 caractères" icon={Lock}/>
-          <Btn full s="lg" onClick={()=>nav(role==="TENANT"?"tenant-search":"dashboard")} icon={ArrowRight}>{reg?"Créer mon compte":"Se connecter"}</Btn>
+          <Btn full s="lg" onClick={()=>nav(role==="TENANT"?"tenant-dash":"dashboard")} icon={ArrowRight}>{reg?"Créer mon compte":"Se connecter"}</Btn>
           <div style={{textAlign:"center",marginTop:4}}><span style={{fontFamily:F.body,fontSize:13,color:C.textMuted}}>{reg?"Déjà un compte ? ":"Pas de compte ? "}</span><span onClick={()=>nav(reg?"login":"register")} style={{fontFamily:F.body,fontSize:13,color:C.gold,cursor:"pointer",fontWeight:600}}>{reg?"Connexion":"S'inscrire"}</span></div>
         </div>
       </div>
@@ -586,7 +590,7 @@ const Dash = ({nav,sub,setSub}) => {
           {sub==="leases"&&<Leases/>}
           {sub==="edl"&&<EDL/>}
           {sub==="messages"&&<Msgs/>}
-          {sub==="artisans"&&<Placeholder i={Wrench} t="Marketplace artisans" d="Plombiers, électriciens, peintres — bientôt disponible"/>}
+          {sub==="artisans"&&<Artisans/>}
           {sub==="settings"&&<Sett/>}
         </div>
       </div>
@@ -638,28 +642,164 @@ const Overview = ({setSub}) => (
 // ═══════════════════════════════════════════════════════
 // DASHBOARD > PROPERTIES
 // ═══════════════════════════════════════════════════════
-const Props = () => (
-  <div>
-    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
-      <span style={{fontFamily:F.body,fontSize:13,color:C.textMuted}}>{PROPERTIES.length} biens</span>
-      <Btn icon={Plus}>Ajouter un bien</Btn>
-    </div>
-    {PROPERTIES.map(p=>(
-      <div key={p.id} style={{background:C.bgCard,border:`1px solid ${C.border}`,borderRadius:12,padding:18,marginBottom:10,display:"flex",gap:16,alignItems:"center",cursor:"pointer",transition:"border-color 0.2s"}} onMouseEnter={e=>e.currentTarget.style.borderColor=C.gold+"40"} onMouseLeave={e=>e.currentTarget.style.borderColor=C.border}>
-        <div style={{width:90,height:70,borderRadius:8,background:C.bgElevated,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Home size={24} color={C.textMuted}/></div>
-        <div style={{flex:1}}>
-          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}><span style={{fontFamily:F.body,fontSize:14,fontWeight:600}}>{p.title}</span><Badge color={p.status==="active"?"green":"gold"}>{p.status==="active"?"Actif":"Brouillon"}</Badge></div>
-          <div style={{display:"flex",gap:14,fontFamily:F.body,fontSize:12,color:C.textSecondary}}><span style={{display:"flex",alignItems:"center",gap:3}}><MapPin size={11}/>{p.city}</span><span style={{display:"flex",alignItems:"center",gap:3}}><Bed size={11}/>{p.rooms}p</span><span style={{display:"flex",alignItems:"center",gap:3}}><Square size={11}/>{p.area}m²</span></div>
-        </div>
-        <div style={{textAlign:"right",flexShrink:0}}><div style={{fontFamily:F.display,fontSize:22,fontWeight:600}}>CHF {p.rent.toLocaleString()}</div><div style={{fontFamily:F.body,fontSize:11,color:C.textMuted}}>+{p.charges} charges</div></div>
-        <div style={{display:"flex",gap:16,flexShrink:0,paddingLeft:16,borderLeft:`1px solid ${C.border}`}}>
-          <div style={{textAlign:"center"}}><div style={{fontFamily:F.mono,fontSize:16,fontWeight:700,color:C.info}}>{p.apps}</div><div style={{fontFamily:F.body,fontSize:10,color:C.textMuted}}>candidatures</div></div>
-          <div style={{textAlign:"center"}}><div style={{fontFamily:F.mono,fontSize:16,fontWeight:700,color:C.textSecondary}}>{p.views}</div><div style={{fontFamily:F.body,fontSize:10,color:C.textMuted}}>vues</div></div>
+const PropCreate = ({onBack}) => {
+  const [step,setStep]=useState(1);
+  const [f,setF]=useState({type:"APARTMENT",title:"",addr:"",npa:"",city:"",canton:"JU",rooms:3.5,area:"",floor:"",floors:"",rent:"",charges:"",deposit:3,balcony:false,parking:false,cellar:false,laundry:false,avail:"",desc:"",prevRent:"",photos:[]});
+  const u=(k,v)=>setF({...f,[k]:v});
+  const steps=["Informations","Caractéristiques","Finances","Vérification"];
+  const needsForm=["GE","VD","NE","FR","ZG","ZH","NW"].includes(f.canton);
+  
+  return (
+    <div>
+      <button onClick={onBack} style={{display:"flex",alignItems:"center",gap:4,background:"none",border:"none",color:C.textMuted,cursor:"pointer",fontFamily:F.body,fontSize:13,marginBottom:20,padding:0}}><ChevronLeft size={15}/> Retour</button>
+      {/* Step indicator */}
+      <div style={{display:"flex",gap:4,marginBottom:8}}>
+        {steps.map((_,i)=><div key={i} style={{flex:1,height:3,borderRadius:2,background:i<step?C.gold:C.border,transition:"background 0.3s"}}/>)}
+      </div>
+      <div style={{display:"flex",gap:16,marginBottom:28}}>
+        {steps.map((s,i)=><span key={i} style={{fontFamily:F.mono,fontSize:10,color:i+1===step?C.gold:i<step?C.success:C.textMuted,letterSpacing:"0.05em"}}>{i+1}. {s}</span>)}
+      </div>
+      
+      <div style={{maxWidth:600}}>
+        {step===1&&<div>
+          <h3 style={{fontFamily:F.display,fontSize:26,fontWeight:400,marginBottom:6}}>Informations <span style={{fontStyle:"italic",color:C.gold}}>générales</span></h3>
+          <p style={{fontFamily:F.body,fontSize:13,color:C.textMuted,marginBottom:28}}>Décrivez votre bien pour attirer les meilleurs candidats.</p>
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              <Sel label="Type de bien" value={f.type} onChange={v=>u("type",v)} opts={[{v:"APARTMENT",l:"Appartement"},{v:"HOUSE",l:"Maison"},{v:"STUDIO",l:"Studio"},{v:"COMMERCIAL",l:"Commercial"}]}/>
+              <Sel label="Canton" value={f.canton} onChange={v=>u("canton",v)} opts={CANTONS.map(c=>({v:c,l:c}))}/>
+            </div>
+            <Inp label="Titre de l'annonce" value={f.title} onChange={v=>u("title",v)} ph="Ex: 3.5 pièces lumineux, vue Jura"/>
+            <Inp label="Adresse" value={f.addr} onChange={v=>u("addr",v)} ph="Rue et numéro" icon={MapPin}/>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 2fr",gap:12}}>
+              <Inp label="NPA" value={f.npa} onChange={v=>u("npa",v)} ph="2800"/>
+              <Inp label="Ville" value={f.city} onChange={v=>u("city",v)} ph="Delémont"/>
+            </div>
+            <Inp label="Description" value={f.desc} onChange={v=>u("desc",v)} ph="Décrivez les points forts du bien..." area/>
+          </div>
+        </div>}
+        
+        {step===2&&<div>
+          <h3 style={{fontFamily:F.display,fontSize:26,fontWeight:400,marginBottom:6}}>Caractéristiques du <span style={{fontStyle:"italic",color:C.gold}}>bien</span></h3>
+          <p style={{fontFamily:F.body,fontSize:13,color:C.textMuted,marginBottom:28}}>Utilisé pour le matching IA et la génération de l'état des lieux.</p>
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
+              <Inp label="Pièces" value={f.rooms} onChange={v=>u("rooms",v)} type="number" suf="pièces" icon={Bed}/>
+              <Inp label="Surface" value={f.area} onChange={v=>u("area",v)} type="number" suf="m²" icon={Square}/>
+              <Inp label="Étage" value={f.floor} onChange={v=>u("floor",v)} type="number" suf={`/ ${f.floors||"?"}`}/>
+            </div>
+            <div>
+              <label style={{fontFamily:F.body,fontSize:12,color:C.textSecondary,fontWeight:500,marginBottom:8,display:"block"}}>Équipements</label>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+                {[{k:"balcony",l:"Balcon / terrasse"},{k:"parking",l:"Place de parc"},{k:"cellar",l:"Cave"},{k:"laundry",l:"Buanderie"}].map(eq=>(
+                  <button key={eq.k} onClick={()=>u(eq.k,!f[eq.k])} style={{display:"flex",alignItems:"center",gap:8,padding:"10px 14px",background:f[eq.k]?C.goldBg:C.bgElevated,border:`1px solid ${f[eq.k]?C.gold+"50":C.border}`,borderRadius:8,cursor:"pointer",color:f[eq.k]?C.gold:C.textSecondary,fontFamily:F.body,fontSize:13,transition:"all 0.2s"}}>
+                    {f[eq.k]?<CheckCircle2 size={15}/>:<CircleDot size={15}/>}{eq.l}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {/* Photo upload zone */}
+            <div>
+              <label style={{fontFamily:F.body,fontSize:12,color:C.textSecondary,fontWeight:500,marginBottom:8,display:"block"}}>Photos</label>
+              <div style={{border:`2px dashed ${C.border}`,borderRadius:10,padding:32,textAlign:"center",cursor:"pointer",transition:"border-color 0.2s"}} onMouseEnter={e=>e.currentTarget.style.borderColor=C.gold+"60"} onMouseLeave={e=>e.currentTarget.style.borderColor=C.border}>
+                <Upload size={28} color={C.textMuted} style={{marginBottom:8}}/>
+                <div style={{fontFamily:F.body,fontSize:13,color:C.textSecondary}}>Glissez vos photos ici ou cliquez</div>
+                <div style={{fontFamily:F.body,fontSize:11,color:C.textMuted,marginTop:4}}>JPG, PNG — max 10 MB par photo</div>
+              </div>
+            </div>
+          </div>
+        </div>}
+        
+        {step===3&&<div>
+          <h3 style={{fontFamily:F.display,fontSize:26,fontWeight:400,marginBottom:6}}>Conditions <span style={{fontStyle:"italic",color:C.gold}}>financières</span></h3>
+          <p style={{fontFamily:F.body,fontSize:13,color:C.textMuted,marginBottom:28}}>Le formulaire de loyer initial sera généré automatiquement si requis.</p>
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              <Inp label="Loyer mensuel net" value={f.rent} onChange={v=>u("rent",v)} type="number" suf="CHF" icon={DollarSign}/>
+              <Inp label="Charges mensuelles" value={f.charges} onChange={v=>u("charges",v)} type="number" suf="CHF"/>
+            </div>
+            <Sel label="Garantie de loyer" value={f.deposit} onChange={v=>u("deposit",v)} opts={[{v:1,l:"1 mois"},{v:2,l:"2 mois"},{v:3,l:"3 mois (max. légal)"}]}/>
+            <Inp label="Loyer du précédent locataire" value={f.prevRent} onChange={v=>u("prevRent",v)} type="number" suf="CHF" ph={needsForm?"Obligatoire dans votre canton":"Optionnel"}/>
+            <Inp label="Disponible dès" value={f.avail} onChange={v=>u("avail",v)} type="date" icon={Calendar}/>
+            {f.rent&&<div style={{background:C.goldBg,border:`1px solid ${C.gold}30`,borderRadius:10,padding:18}}>
+              <div style={{fontFamily:F.body,fontSize:12,color:C.gold,marginBottom:6}}>Votre commission immo.cool</div>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline"}}>
+                <span style={{fontFamily:F.display,fontSize:30,fontWeight:600}}>CHF {Math.round(f.rent*0.5).toLocaleString()}</span>
+                <span style={{fontFamily:F.body,fontSize:12,color:C.textMuted}}>50% du 1er loyer — après signature</span>
+              </div>
+            </div>}
+          </div>
+        </div>}
+        
+        {step===4&&<div>
+          <h3 style={{fontFamily:F.display,fontSize:26,fontWeight:400,marginBottom:6}}>Vérification <span style={{fontStyle:"italic",color:C.gold}}>finale</span></h3>
+          <p style={{fontFamily:F.body,fontSize:13,color:C.textMuted,marginBottom:24}}>L'état des lieux et le bail seront générés automatiquement.</p>
+          <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:20}}>
+            {[
+              {ok:true,t:`Canton ${f.canton}: formulaire de loyer initial ${needsForm?"obligatoire — sera généré ✓":"non requis"}`},
+              {ok:true,t:`Garantie: ${f.deposit} mois — conforme art. 257e CO (max. 3 mois)`},
+              {ok:true,t:"Taux hypothécaire 1.25% + IPC 107.1 — seront inclus dans le bail"},
+              {ok:!!f.prevRent||!needsForm,t:f.prevRent?`Loyer précédent: CHF ${f.prevRent} — transparence assurée`:`Loyer précédent non renseigné${needsForm?" — recommandé pour "+f.canton:""}`},
+              {ok:!!f.desc,t:f.desc?"Description renseignée":"Description manquante — recommandé pour le matching"},
+            ].map((c,i)=>(
+              <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"9px 12px",background:c.ok?C.successBg:C.dangerBg,borderRadius:8}}>
+                {c.ok?<CheckCircle2 size={15} color={C.success}/>:<AlertTriangle size={15} color={C.danger}/>}
+                <span style={{fontFamily:F.body,fontSize:12,color:c.ok?C.success:C.danger}}>{c.t}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{background:C.bgCard,border:`1px solid ${C.border}`,borderRadius:10,padding:16}}>
+            <div style={{fontFamily:F.body,fontSize:12,color:C.textMuted,marginBottom:10}}>Documents générés automatiquement</div>
+            {[`Bail à loyer — canton ${f.canton}`,needsForm&&"Formulaire de loyer initial",`État des lieux — ${Math.floor(f.rooms)||3} pièces${[f.balcony&&" + balcon",f.cellar&&" + cave"].filter(Boolean).join("")}`,"Quittance de clés"].filter(Boolean).map((d,i)=>(
+              <div key={i} style={{display:"flex",alignItems:"center",gap:6,padding:"6px 0"}}><FileText size={13} color={C.gold}/><span style={{fontFamily:F.body,fontSize:12,color:C.textSecondary}}>{d}</span></div>
+            ))}
+          </div>
+          {/* Récapitulatif */}
+          <div style={{background:C.bgCard,border:`1px solid ${C.border}`,borderRadius:10,padding:16,marginTop:12}}>
+            <div style={{fontFamily:F.body,fontSize:12,color:C.textMuted,marginBottom:10}}>Récapitulatif</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+              {[{l:"Type",v:{APARTMENT:"Appartement",HOUSE:"Maison",STUDIO:"Studio",COMMERCIAL:"Commercial"}[f.type]},{l:"Adresse",v:`${f.addr}, ${f.npa} ${f.city}`},{l:"Pièces/Surface",v:`${f.rooms}p / ${f.area||"?"}m²`},{l:"Loyer",v:f.rent?`CHF ${Number(f.rent).toLocaleString()} + ${f.charges||0}`:"—"},{l:"Dispo",v:f.avail||"—"},{l:"Équipements",v:[f.balcony&&"Balcon",f.parking&&"Parking",f.cellar&&"Cave",f.laundry&&"Buanderie"].filter(Boolean).join(", ")||"Aucun"}].map((r,i)=>(
+                <div key={i}><div style={{fontFamily:F.body,fontSize:10,color:C.textMuted}}>{r.l}</div><div style={{fontFamily:F.body,fontSize:13,color:C.text,marginTop:1}}>{r.v}</div></div>
+              ))}
+            </div>
+          </div>
+        </div>}
+        
+        <div style={{display:"flex",justifyContent:"space-between",marginTop:32}}>
+          <Btn v="ghost" onClick={()=>step>1?setStep(step-1):onBack()} icon={ChevronLeft}>{step>1?"Précédent":"Annuler"}</Btn>
+          <Btn onClick={()=>step<4?setStep(step+1):onBack()} icon={step===4?Check:ChevronRight}>{step===4?"Publier le bien":"Suivant"}</Btn>
         </div>
       </div>
-    ))}
-  </div>
-);
+    </div>
+  );
+};
+
+const Props = () => {
+  const [creating,setCreating]=useState(false);
+  if(creating) return <PropCreate onBack={()=>setCreating(false)}/>;
+  return (
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+        <span style={{fontFamily:F.body,fontSize:13,color:C.textMuted}}>{PROPERTIES.length} biens</span>
+        <Btn icon={Plus} onClick={()=>setCreating(true)}>Ajouter un bien</Btn>
+      </div>
+      {PROPERTIES.map(p=>(
+        <div key={p.id} style={{background:C.bgCard,border:`1px solid ${C.border}`,borderRadius:12,padding:18,marginBottom:10,display:"flex",gap:16,alignItems:"center",cursor:"pointer",transition:"border-color 0.2s"}} onMouseEnter={e=>e.currentTarget.style.borderColor=C.gold+"40"} onMouseLeave={e=>e.currentTarget.style.borderColor=C.border}>
+          <div style={{width:90,height:70,borderRadius:8,background:C.bgElevated,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Home size={24} color={C.textMuted}/></div>
+          <div style={{flex:1}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}><span style={{fontFamily:F.body,fontSize:14,fontWeight:600}}>{p.title}</span><Badge color={p.status==="active"?"green":"gold"}>{p.status==="active"?"Actif":"Brouillon"}</Badge></div>
+            <div style={{display:"flex",gap:14,fontFamily:F.body,fontSize:12,color:C.textSecondary}}><span style={{display:"flex",alignItems:"center",gap:3}}><MapPin size={11}/>{p.city}</span><span style={{display:"flex",alignItems:"center",gap:3}}><Bed size={11}/>{p.rooms}p</span><span style={{display:"flex",alignItems:"center",gap:3}}><Square size={11}/>{p.area}m²</span></div>
+          </div>
+          <div style={{textAlign:"right",flexShrink:0}}><div style={{fontFamily:F.display,fontSize:22,fontWeight:600}}>CHF {p.rent.toLocaleString()}</div><div style={{fontFamily:F.body,fontSize:11,color:C.textMuted}}>+{p.charges} charges</div></div>
+          <div style={{display:"flex",gap:16,flexShrink:0,paddingLeft:16,borderLeft:`1px solid ${C.border}`}}>
+            <div style={{textAlign:"center"}}><div style={{fontFamily:F.mono,fontSize:16,fontWeight:700,color:C.info}}>{p.apps}</div><div style={{fontFamily:F.body,fontSize:10,color:C.textMuted}}>candidatures</div></div>
+            <div style={{textAlign:"center"}}><div style={{fontFamily:F.mono,fontSize:16,fontWeight:700,color:C.textSecondary}}>{p.views}</div><div style={{fontFamily:F.body,fontSize:10,color:C.textMuted}}>vues</div></div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 // ═══════════════════════════════════════════════════════
 // DASHBOARD > TENANTS (MATCHING)
@@ -720,39 +860,85 @@ const Tenants = () => {
 // ═══════════════════════════════════════════════════════
 // DASHBOARD > LEASES
 // ═══════════════════════════════════════════════════════
-const Leases = () => (
-  <div>
-    {[{ref:"JU-2026-0047",tenant:"Marc Dubois",prop:"2.5 pièces, Porrentruy",start:"15.03.2026",rent:"CHF 980",st:"active",signed:true},{ref:"JU-2026-0052",tenant:"Sophie Müller",prop:"3.5 pièces, Delémont",start:"01.04.2026",rent:"CHF 1'350",st:"pending",signed:false}].map((l,i)=>(
-      <div key={i} style={{background:C.bgCard,border:`1px solid ${C.border}`,borderRadius:12,padding:18,marginBottom:12}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
-          <div>
-            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}><span style={{fontFamily:F.mono,fontSize:12,color:C.gold}}>{l.ref}</span><Badge color={l.st==="active"?"green":"gold"}>{l.st==="active"?"Actif":"En attente"}</Badge></div>
-            <div style={{fontFamily:F.body,fontSize:14,fontWeight:600}}>{l.prop}</div>
-            <div style={{fontFamily:F.body,fontSize:12,color:C.textSecondary,marginTop:3}}>Locataire: {l.tenant} — Début: {l.start}</div>
-          </div>
-          <div style={{textAlign:"right"}}><div style={{fontFamily:F.display,fontSize:20,fontWeight:600}}>{l.rent}</div><div style={{fontFamily:F.body,fontSize:10,color:C.textMuted}}>loyer net</div></div>
+const Leases = () => {
+  const [signBail,setSignBail]=useState(null);
+  const [bailSigned,setBailSigned]=useState({});
+  
+  const leases = [
+    {ref:"JU-2026-0047",tenant:"Marc Dubois",prop:"2.5 pièces, Porrentruy",start:"15.03.2026",rent:"CHF 980",st:"active",signed:true},
+    {ref:"JU-2026-0052",tenant:"Sophie Müller",prop:"3.5 pièces, Delémont",start:"01.04.2026",rent:"CHF 1'350",st:"pending",signed:false},
+  ];
+  
+  if(signBail) return (
+    <div style={{maxWidth:600}}>
+      <Btn v="ghost" s="sm" icon={ArrowLeft} onClick={()=>setSignBail(null)}>Retour aux baux</Btn>
+      <h3 style={{fontFamily:F.display,fontSize:26,fontWeight:400,margin:"20px 0 8px"}}>Signature du <span style={{fontStyle:"italic",color:C.gold}}>bail</span></h3>
+      <div style={{background:C.bgCard,border:`1px solid ${C.border}`,borderRadius:12,padding:18,marginBottom:20}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+          <div><span style={{fontFamily:F.mono,fontSize:12,color:C.gold}}>{signBail.ref}</span></div>
+          <Badge color="gold">En attente de signature</Badge>
         </div>
-        <div style={{display:"flex",gap:8,marginTop:14}}>
-          <Btn v="secondary" s="sm" icon={FileText}>Voir le bail</Btn>
-          <Btn v="ghost" s="sm" icon={Download}>PDF</Btn>
-          {!l.signed&&<Btn s="sm" icon={Pen}>Signer</Btn>}
+        <div style={{fontFamily:F.body,fontSize:14,fontWeight:600}}>{signBail.prop}</div>
+        <div style={{fontFamily:F.body,fontSize:12,color:C.textSecondary,marginTop:4}}>Locataire: {signBail.tenant} — Début: {signBail.start} — Loyer: {signBail.rent}/mois</div>
+        <div style={{marginTop:12,display:"flex",flexDirection:"column",gap:6}}>
+          {["Taux hypothécaire de référence: 1.25%","IPC base décembre 2025: 107.1 pts","Garantie: 3 mois (art. 257e CO)","Formulaire de loyer initial: conforme JU","Délai de résiliation: 3 mois pour le 30.06 ou 31.12"].map((x,i)=>(
+            <div key={i} style={{display:"flex",alignItems:"center",gap:6}}><CheckCircle2 size={13} color={C.success}/><span style={{fontFamily:F.body,fontSize:12,color:C.textSecondary}}>{x}</span></div>
+          ))}
         </div>
       </div>
-    ))}
-    <div style={{background:C.bgCard,border:`1px solid ${C.border}`,borderRadius:12,padding:18,marginTop:16}}>
-      <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:14}}><Shield size={15} color={C.gold}/><span style={{fontFamily:F.body,fontSize:13,fontWeight:600}}>Références légales</span></div>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
-        {[{l:"Taux hypothécaire",v:"1.25%",s:"OFL — trimestriel"},{l:"IPC",v:"107.1 pts",s:"OFS — mensuel"},{l:"OBLF",v:"Art. 12-13, 16, 19",s:"Conformité auto"}].map((r,i)=>(
-          <div key={i} style={{padding:14,background:C.bgElevated,borderRadius:8,border:`1px solid ${C.border}`}}>
-            <div style={{fontFamily:F.body,fontSize:10,color:C.textMuted}}>{r.l}</div>
-            <div style={{fontFamily:F.mono,fontSize:16,fontWeight:700,margin:"3px 0"}}>{r.v}</div>
-            <div style={{fontFamily:F.body,fontSize:10,color:C.textMuted}}>{r.s}</div>
+      
+      {bailSigned[signBail.ref]?(
+        <div style={{background:C.successBg,border:`1px solid ${C.success}30`,borderRadius:12,padding:20,display:"flex",alignItems:"center",gap:12}}>
+          <CheckCircle2 size={24} color={C.success}/>
+          <div>
+            <div style={{fontFamily:F.body,fontSize:15,fontWeight:600,color:C.success}}>Bail signé avec succès !</div>
+            <div style={{fontFamily:F.body,fontSize:12,color:C.textSecondary}}>Le document PDF a été généré et envoyé aux deux parties. La commission de CHF {parseInt(signBail.rent.replace(/[^\d]/g,""))*0.5} sera prélevée via Stripe.</div>
           </div>
-        ))}
+        </div>
+      ):(
+        <div>
+          <div style={{fontFamily:F.body,fontSize:13,color:C.textSecondary,marginBottom:12}}>Signature du propriétaire</div>
+          <SignaturePad onSave={()=>setBailSigned({...bailSigned,[signBail.ref]:true})} onCancel={()=>setSignBail(null)}/>
+        </div>
+      )}
+    </div>
+  );
+  
+  return (
+    <div>
+      {leases.map((l,i)=>(
+        <div key={i} style={{background:C.bgCard,border:`1px solid ${C.border}`,borderRadius:12,padding:18,marginBottom:12}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+            <div>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}><span style={{fontFamily:F.mono,fontSize:12,color:C.gold}}>{l.ref}</span><Badge color={l.st==="active"||bailSigned[l.ref]?"green":"gold"}>{l.st==="active"||bailSigned[l.ref]?"Actif":"En attente"}</Badge></div>
+              <div style={{fontFamily:F.body,fontSize:14,fontWeight:600}}>{l.prop}</div>
+              <div style={{fontFamily:F.body,fontSize:12,color:C.textSecondary,marginTop:3}}>Locataire: {l.tenant} — Début: {l.start}</div>
+            </div>
+            <div style={{textAlign:"right"}}><div style={{fontFamily:F.display,fontSize:20,fontWeight:600}}>{l.rent}</div><div style={{fontFamily:F.body,fontSize:10,color:C.textMuted}}>loyer net</div></div>
+          </div>
+          <div style={{display:"flex",gap:8,marginTop:14}}>
+            <Btn v="secondary" s="sm" icon={FileText}>Voir le bail</Btn>
+            <Btn v="ghost" s="sm" icon={Download}>PDF</Btn>
+            {!l.signed&&!bailSigned[l.ref]&&<Btn s="sm" icon={Pen} onClick={()=>setSignBail(l)}>Signer</Btn>}
+            {bailSigned[l.ref]&&<Badge color="green"><Check size={10}/> Signé</Badge>}
+          </div>
+        </div>
+      ))}
+      <div style={{background:C.bgCard,border:`1px solid ${C.border}`,borderRadius:12,padding:18,marginTop:16}}>
+        <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:14}}><Shield size={15} color={C.gold}/><span style={{fontFamily:F.body,fontSize:13,fontWeight:600}}>Références légales</span></div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
+          {[{l:"Taux hypothécaire",v:"1.25%",s:"OFL — trimestriel"},{l:"IPC",v:"107.1 pts",s:"OFS — mensuel"},{l:"OBLF",v:"Art. 12-13, 16, 19",s:"Conformité auto"}].map((r,i)=>(
+            <div key={i} style={{padding:14,background:C.bgElevated,borderRadius:8,border:`1px solid ${C.border}`}}>
+              <div style={{fontFamily:F.body,fontSize:10,color:C.textMuted}}>{r.l}</div>
+              <div style={{fontFamily:F.mono,fontSize:16,fontWeight:700,margin:"3px 0"}}>{r.v}</div>
+              <div style={{fontFamily:F.body,fontSize:10,color:C.textMuted}}>{r.s}</div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 // ═══════════════════════════════════════════════════════
 // DASHBOARD > ÉTAT DES LIEUX with comparison
@@ -924,6 +1110,257 @@ const Msgs = () => {
 };
 
 // ═══════════════════════════════════════════════════════
+// DASHBOARD > ARTISANS MARKETPLACE
+// ═══════════════════════════════════════════════════════
+const ARTISANS_DATA = [
+  {id:1,name:"Plomberie Jurassienne",av:"PJ",specialty:"PLOMBERIE",rating:4.8,reviews:23,hourly:95,city:"Delémont",canton:"JU",verified:true,available:true,desc:"Dépannage et installations sanitaires depuis 15 ans dans le Jura."},
+  {id:2,name:"Électricité Becker SA",av:"EB",specialty:"ELECTRICITE",rating:4.6,reviews:18,hourly:110,city:"Porrentruy",canton:"JU",verified:true,available:true,desc:"Installations électriques, dépannage, contrôles périodiques."},
+  {id:3,name:"Peinture Horizon",av:"PH",specialty:"PEINTURE",rating:4.9,reviews:31,hourly:85,city:"Delémont",canton:"JU",verified:true,available:false,desc:"Peinture intérieure/extérieure, sols, tapisserie."},
+  {id:4,name:"Serrurerie Express",av:"SE",specialty:"SERRURERIE",rating:4.5,reviews:12,hourly:120,city:"Delémont",canton:"JU",verified:false,available:true,desc:"Ouverture de portes, remplacement serrures, blindage."},
+  {id:5,name:"Chauffage Müller",av:"CM",specialty:"CHAUFFAGE",rating:4.7,reviews:27,hourly:105,city:"Courgenay",canton:"JU",verified:true,available:true,desc:"Entretien et dépannage chauffage, pompes à chaleur."},
+];
+const specLabels={PLOMBERIE:"Plomberie",ELECTRICITE:"Électricité",PEINTURE:"Peinture",SERRURERIE:"Serrurerie",CHAUFFAGE:"Chauffage",MENUISERIE:"Menuiserie",NETTOYAGE:"Nettoyage"};
+const specColors={PLOMBERIE:C.info,ELECTRICITE:C.gold,PEINTURE:C.purple,SERRURERIE:C.cyan,CHAUFFAGE:"#F97316",MENUISERIE:"#A3E635",NETTOYAGE:C.success};
+
+const Artisans = () => {
+  const [sel,setSel]=useState(null);
+  const [showRequest,setShowRequest]=useState(false);
+  const [reqDesc,setReqDesc]=useState("");
+  const [reqSent,setReqSent]=useState(false);
+  const [filter,setFilter]=useState("ALL");
+  
+  const filtered = filter==="ALL"?ARTISANS_DATA:ARTISANS_DATA.filter(a=>a.specialty===filter);
+  
+  return (
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+        <div>
+          <span style={{fontFamily:F.body,fontSize:13,color:C.textMuted}}>{filtered.length} artisans dans le Jura</span>
+          <div style={{fontFamily:F.body,fontSize:11,color:C.textMuted,marginTop:2}}>Commission: 10% prélevée automatiquement via Stripe</div>
+        </div>
+      </div>
+      {/* Filter tabs */}
+      <div style={{display:"flex",gap:4,marginBottom:20,flexWrap:"wrap"}}>
+        {[{v:"ALL",l:"Tous"},...Object.entries(specLabels).map(([v,l])=>({v,l}))].map(f=>(
+          <button key={f.v} onClick={()=>setFilter(f.v)} style={{padding:"6px 14px",borderRadius:20,border:`1px solid ${filter===f.v?(specColors[f.v]||C.gold)+"50":C.border}`,background:filter===f.v?`${specColors[f.v]||C.gold}12`:"transparent",color:filter===f.v?(specColors[f.v]||C.gold):C.textMuted,cursor:"pointer",fontFamily:F.body,fontSize:12,fontWeight:filter===f.v?600:400,transition:"all 0.2s"}}>{f.l}</button>
+        ))}
+      </div>
+      
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+        {filtered.map(a=>{
+          const col=specColors[a.specialty]||C.gold;
+          return (
+            <div key={a.id} style={{background:C.bgCard,border:`1px solid ${sel?.id===a.id?col+"40":C.border}`,borderRadius:12,padding:18,cursor:"pointer",transition:"all 0.2s"}} onClick={()=>{setSel(a);setShowRequest(false);setReqSent(false)}} onMouseEnter={e=>e.currentTarget.style.borderColor=col+"30"} onMouseLeave={e=>{if(sel?.id!==a.id)e.currentTarget.style.borderColor=C.border}}>
+              <div style={{display:"flex",alignItems:"flex-start",gap:12,marginBottom:10}}>
+                <div style={{width:44,height:44,borderRadius:12,background:`${col}15`,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:F.mono,fontSize:14,fontWeight:700,color:col,flexShrink:0}}>{a.av}</div>
+                <div style={{flex:1}}>
+                  <div style={{display:"flex",alignItems:"center",gap:6}}><span style={{fontFamily:F.body,fontSize:14,fontWeight:600}}>{a.name}</span>{a.verified&&<CheckCircle2 size={13} color={C.success}/>}</div>
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginTop:3}}>
+                    <Badge color={Object.keys(specColors).indexOf(a.specialty)%2===0?"blue":"purple"} s="sm">{specLabels[a.specialty]}</Badge>
+                    <span style={{fontFamily:F.body,fontSize:11,color:C.textMuted}}>{a.city}</span>
+                  </div>
+                </div>
+              </div>
+              <div style={{fontFamily:F.body,fontSize:12,color:C.textSecondary,lineHeight:1.5,marginBottom:10}}>{a.desc}</div>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div style={{display:"flex",alignItems:"center",gap:4}}>
+                  <Star size={13} color={C.gold} fill={C.gold}/>
+                  <span style={{fontFamily:F.mono,fontSize:13,fontWeight:600,color:C.text}}>{a.rating}</span>
+                  <span style={{fontFamily:F.body,fontSize:11,color:C.textMuted}}>({a.reviews} avis)</span>
+                </div>
+                <div style={{display:"flex",alignItems:"center",gap:8}}>
+                  <span style={{fontFamily:F.mono,fontSize:12,color:C.textSecondary}}>CHF {a.hourly}/h</span>
+                  <Badge color={a.available?"green":"red"} s="sm">{a.available?"Disponible":"Occupé"}</Badge>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      
+      {/* Request intervention panel */}
+      {sel&&<div style={{marginTop:20,background:C.bgCard,border:`1px solid ${C.border}`,borderRadius:12,padding:20}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+          <div style={{fontFamily:F.body,fontSize:14,fontWeight:600}}>Demander une intervention — {sel.name}</div>
+          <Btn v="ghost" s="sm" onClick={()=>setSel(null)}><X size={14}/></Btn>
+        </div>
+        {reqSent?(
+          <div style={{background:C.successBg,border:`1px solid ${C.success}30`,borderRadius:10,padding:16,display:"flex",alignItems:"center",gap:12}}>
+            <CheckCircle2 size={20} color={C.success}/>
+            <div><div style={{fontFamily:F.body,fontSize:14,fontWeight:600,color:C.success}}>Demande envoyée !</div><div style={{fontFamily:F.body,fontSize:12,color:C.textSecondary}}>L'artisan recevra votre demande et vous contactera via la messagerie. Commission de 10% prélevée automatiquement à la fin de l'intervention.</div></div>
+          </div>
+        ):(
+          <div>
+            <Sel label="Bien concerné" value="" onChange={()=>{}} opts={PROPERTIES.map(p=>({v:p.id,l:`${p.title} — ${p.addr}`}))}/>
+            <div style={{marginTop:12}}><Inp label="Description du problème" value={reqDesc} onChange={setReqDesc} ph="Décrivez le problème en détail..." area icon={Edit3}/></div>
+            <div style={{display:"flex",alignItems:"center",gap:6,marginTop:8,fontFamily:F.body,fontSize:11,color:C.textMuted}}><Info size={12}/> L'artisan vous enverra un devis. Paiement après intervention via Stripe (10% commission auto).</div>
+            <div style={{display:"flex",gap:8,marginTop:14}}>
+              <Btn icon={Send} onClick={()=>setReqSent(true)} disabled={!reqDesc.trim()}>Envoyer la demande</Btn>
+              <Btn v="ghost" onClick={()=>setSel(null)}>Annuler</Btn>
+            </div>
+          </div>
+        )}
+      </div>}
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════
+// TENANT DASHBOARD (post-login)
+// ═══════════════════════════════════════════════════════
+const TenantDash = ({nav}) => {
+  const [tab,setTab]=useState("search");
+  const tabs=[{id:"search",i:Search,l:"Recherche"},{id:"apps",i:FileText,l:"Mes candidatures"},{id:"lease",i:Key,l:"Mon bail"},{id:"edl",i:Camera,l:"État des lieux"},{id:"msgs",i:MessageSquare,l:"Messages",badge:1}];
+  
+  return (
+    <div style={{display:"flex",height:"100vh",background:C.bg,color:C.text,overflow:"hidden"}}>
+      {/* Sidebar tenant */}
+      <div style={{width:200,background:C.bgCard,borderRight:`1px solid ${C.border}`,display:"flex",flexDirection:"column",flexShrink:0}}>
+        <div style={{padding:"16px 12px",borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",cursor:"pointer"}} onClick={()=>nav("landing")}>
+          <span style={{fontFamily:F.display,fontSize:20,fontWeight:600}}>immo</span><span style={{fontFamily:F.display,fontSize:20,fontWeight:600,color:C.gold}}>.</span><span style={{fontFamily:F.display,fontSize:20,fontWeight:600}}>cool</span>
+        </div>
+        <div style={{flex:1,padding:"10px 6px",display:"flex",flexDirection:"column",gap:1}}>
+          {tabs.map(t=>(
+            <button key={t.id} onClick={()=>t.id==="search"?nav("tenant-search"):setTab(t.id)} style={{display:"flex",alignItems:"center",gap:9,padding:"9px 10px",background:tab===t.id?C.goldBg:"transparent",border:"none",borderRadius:7,cursor:"pointer",color:tab===t.id?C.gold:C.textSecondary,transition:"all 0.2s",width:"100%",position:"relative"}} onMouseEnter={e=>{if(tab!==t.id)e.currentTarget.style.background=C.bgHover}} onMouseLeave={e=>{if(tab!==t.id)e.currentTarget.style.background="transparent"}}>
+              <t.i size={16}/><span style={{fontFamily:F.body,fontSize:12,fontWeight:tab===t.id?600:400}}>{t.l}</span>
+              {t.badge&&<span style={{marginLeft:"auto",background:C.danger,color:C.text,width:16,height:16,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:F.mono,fontSize:9,fontWeight:700}}>{t.badge}</span>}
+            </button>
+          ))}
+        </div>
+        <div style={{padding:"10px 6px",borderTop:`1px solid ${C.border}`}}>
+          <button onClick={()=>nav("landing")} style={{display:"flex",alignItems:"center",gap:9,padding:"9px 10px",background:"none",border:"none",borderRadius:7,cursor:"pointer",color:C.textMuted,width:"100%"}}><LogOut size={16}/><span style={{fontFamily:F.body,fontSize:12}}>Déconnexion</span></button>
+        </div>
+      </div>
+      
+      <div style={{flex:1,overflow:"auto",padding:28}}>
+        {tab==="apps"&&<div>
+          <h3 style={{fontFamily:F.display,fontSize:24,fontWeight:400,marginBottom:20}}>Mes <span style={{fontStyle:"italic",color:C.gold}}>candidatures</span></h3>
+          {[
+            {prop:PROPERTIES[0],status:"accepted",score:92,date:"21.02.2026"},
+            {prop:PROPERTIES[1],status:"pending",score:87,date:"19.02.2026"},
+            {prop:PROPERTIES[3],status:"rejected",score:68,date:"15.02.2026"},
+          ].map((a,i)=>(
+            <div key={i} style={{background:C.bgCard,border:`1px solid ${C.border}`,borderRadius:12,padding:16,marginBottom:10,display:"flex",alignItems:"center",gap:14}}>
+              <Ring score={a.score} size={48}/>
+              <div style={{flex:1}}>
+                <div style={{fontFamily:F.body,fontSize:14,fontWeight:600}}>{a.prop.title}</div>
+                <div style={{fontFamily:F.body,fontSize:12,color:C.textSecondary,marginTop:2}}>{a.prop.addr}, {a.prop.city} — CHF {a.prop.rent.toLocaleString()}/mois</div>
+              </div>
+              <div style={{textAlign:"right"}}>
+                <Badge color={a.status==="accepted"?"green":a.status==="pending"?"gold":"red"}>{a.status==="accepted"?"Acceptée":a.status==="pending"?"En attente":"Refusée"}</Badge>
+                <div style={{fontFamily:F.mono,fontSize:10,color:C.textMuted,marginTop:4}}>{a.date}</div>
+              </div>
+            </div>
+          ))}
+        </div>}
+        
+        {tab==="lease"&&<div>
+          <h3 style={{fontFamily:F.display,fontSize:24,fontWeight:400,marginBottom:20}}>Mon <span style={{fontStyle:"italic",color:C.gold}}>bail</span></h3>
+          <div style={{background:C.bgCard,border:`1px solid ${C.success}30`,borderRadius:12,padding:20}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16}}>
+              <div>
+                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}><Badge color="green">Actif</Badge><span style={{fontFamily:F.mono,fontSize:11,color:C.gold}}>JU-2026-0047</span></div>
+                <div style={{fontFamily:F.body,fontSize:16,fontWeight:600}}>2.5 pièces, Grand-Rue 45, Porrentruy</div>
+                <div style={{fontFamily:F.body,fontSize:13,color:C.textSecondary,marginTop:4}}>Propriétaire: Olivier Botteron</div>
+              </div>
+              <div style={{textAlign:"right"}}><div style={{fontFamily:F.display,fontSize:24,fontWeight:600}}>CHF 980</div><div style={{fontFamily:F.body,fontSize:11,color:C.textMuted}}>loyer net/mois + CHF 120 charges</div></div>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:10,marginBottom:16}}>
+              {[{l:"Début",v:"15.03.2026"},{l:"Garantie",v:"2 mois"},{l:"Taux hypo.",v:"1.25%"},{l:"Prochain terme",v:"30.09.2026"}].map((x,j)=>(
+                <div key={j} style={{background:C.bgElevated,borderRadius:8,padding:"10px 12px",textAlign:"center"}}><div style={{fontFamily:F.body,fontSize:10,color:C.textMuted}}>{x.l}</div><div style={{fontFamily:F.mono,fontSize:14,fontWeight:600,marginTop:2}}>{x.v}</div></div>
+              ))}
+            </div>
+            <div style={{display:"flex",gap:8}}>
+              <Btn v="secondary" s="sm" icon={FileText}>Voir le bail PDF</Btn>
+              <Btn v="secondary" s="sm" icon={Download}>Télécharger</Btn>
+              <Btn v="ghost" s="sm" icon={AlertTriangle}>Signaler un problème</Btn>
+            </div>
+          </div>
+          {/* Résiliation helper */}
+          <div style={{background:C.bgCard,border:`1px solid ${C.border}`,borderRadius:12,padding:18,marginTop:16}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}><Clock size={15} color={C.gold}/><span style={{fontFamily:F.body,fontSize:13,fontWeight:600}}>Résiliation</span></div>
+            <div style={{fontFamily:F.body,fontSize:13,color:C.textSecondary,lineHeight:1.6}}>Votre bail peut être résilié pour le <strong style={{color:C.text}}>30 septembre 2026</strong> avec un préavis de 3 mois. Dernier jour d'envoi de la résiliation: <strong style={{color:C.gold}}>30 juin 2026</strong>.</div>
+            <Btn v="secondary" s="sm" icon={Mail} style={{marginTop:12}}>Préparer la résiliation</Btn>
+          </div>
+        </div>}
+        
+        {tab==="edl"&&<div>
+          <h3 style={{fontFamily:F.display,fontSize:24,fontWeight:400,marginBottom:20}}>État des <span style={{fontStyle:"italic",color:C.gold}}>lieux</span></h3>
+          <div style={{background:C.bgCard,border:`1px solid ${C.border}`,borderRadius:12,padding:18}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+              <div><Badge color="green">Entrée — Complété</Badge><span style={{fontFamily:F.body,fontSize:12,color:C.textMuted,marginLeft:10}}>15.03.2026</span></div>
+              <Btn v="secondary" s="sm" icon={Download}>Télécharger PDF</Btn>
+            </div>
+            <div style={{fontFamily:F.body,fontSize:13,color:C.textSecondary}}>2.5 pièces, Grand-Rue 45, Porrentruy — 48/48 éléments inspectés, signé par les deux parties.</div>
+          </div>
+          <div style={{background:C.bgCard,border:`1px solid ${C.gold}30`,borderRadius:12,padding:18,marginTop:12}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+              <div><Badge color="gold">Sortie — À planifier</Badge></div>
+              <Btn s="sm" icon={Calendar}>Planifier la sortie</Btn>
+            </div>
+            <div style={{fontFamily:F.body,fontSize:13,color:C.textSecondary}}>L'état des lieux de sortie sera basé sur celui d'entrée. Les différences seront automatiquement mises en évidence.</div>
+          </div>
+        </div>}
+        
+        {tab==="msgs"&&<Msgs/>}
+      </div>
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════
+// VISIT SCHEDULER (used inside tenant search detail)
+// ═══════════════════════════════════════════════════════
+const VisitScheduler = ({property,onClose,onConfirm}) => {
+  const [selDate,setSelDate]=useState(null);
+  const [selTime,setSelTime]=useState(null);
+  const [confirmed,setConfirmed]=useState(false);
+  const dates = Array.from({length:7}).map((_,i)=>{const d=new Date();d.setDate(d.getDate()+i+2);return d;});
+  const times = ["09:00","10:00","11:00","14:00","15:00","16:00","17:00"];
+  
+  if(confirmed) return (
+    <div style={{background:C.successBg,border:`1px solid ${C.success}30`,borderRadius:12,padding:20}}>
+      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}><CheckCircle2 size={22} color={C.success}/><span style={{fontFamily:F.body,fontSize:15,fontWeight:600,color:C.success}}>Visite confirmée !</span></div>
+      <div style={{fontFamily:F.body,fontSize:13,color:C.textSecondary,lineHeight:1.6}}>
+        {property.title}<br/>
+        {selDate?.toLocaleDateString("fr-CH",{weekday:"long",day:"numeric",month:"long"})} à {selTime}<br/>
+        Le propriétaire recevra une notification. Vous recevrez un rappel la veille.
+      </div>
+    </div>
+  );
+  
+  return (
+    <div style={{background:C.bgCard,border:`1px solid ${C.border}`,borderRadius:12,padding:20}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+        <span style={{fontFamily:F.body,fontSize:14,fontWeight:600}}>Planifier une visite</span>
+        <Btn v="ghost" s="sm" onClick={onClose}><X size={14}/></Btn>
+      </div>
+      <div style={{fontFamily:F.body,fontSize:12,color:C.textMuted,marginBottom:14}}>Choisissez une date</div>
+      <div style={{display:"flex",gap:6,marginBottom:16,flexWrap:"wrap"}}>
+        {dates.map((d,i)=>(
+          <button key={i} onClick={()=>setSelDate(d)} style={{padding:"8px 14px",borderRadius:8,border:`1px solid ${selDate===d?C.gold+"60":C.border}`,background:selDate===d?C.goldBg:"transparent",cursor:"pointer",textAlign:"center",transition:"all 0.2s"}}>
+            <div style={{fontFamily:F.body,fontSize:10,color:selDate===d?C.gold:C.textMuted}}>{d.toLocaleDateString("fr-CH",{weekday:"short"})}</div>
+            <div style={{fontFamily:F.mono,fontSize:14,fontWeight:600,color:selDate===d?C.gold:C.text}}>{d.getDate()}</div>
+          </button>
+        ))}
+      </div>
+      {selDate&&<>
+        <div style={{fontFamily:F.body,fontSize:12,color:C.textMuted,marginBottom:10}}>Choisissez un créneau</div>
+        <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:16}}>
+          {times.map(t=>(
+            <button key={t} onClick={()=>setSelTime(t)} style={{padding:"6px 16px",borderRadius:6,border:`1px solid ${selTime===t?C.gold+"60":C.border}`,background:selTime===t?C.goldBg:"transparent",cursor:"pointer",fontFamily:F.mono,fontSize:12,color:selTime===t?C.gold:C.textSecondary,transition:"all 0.2s"}}>{t}</button>
+          ))}
+        </div>
+      </>}
+      <div style={{display:"flex",gap:8}}>
+        <Btn icon={Calendar} disabled={!selDate||!selTime} onClick={()=>setConfirmed(true)}>Confirmer la visite</Btn>
+        <Btn v="ghost" onClick={onClose}>Annuler</Btn>
+      </div>
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════
 // SETTINGS
 // ═══════════════════════════════════════════════════════
 const Sett = () => (
@@ -982,6 +1419,7 @@ export default function ImmoCool() {
         {page==="register"&&<Auth mode="register" nav={nav}/>}
         {page==="dashboard"&&<Dash nav={nav} sub={sub} setSub={setSub}/>}
         {page==="tenant-search"&&<TenantSearch nav={nav}/>}
+        {page==="tenant-dash"&&<TenantDash nav={nav}/>}
       </div>
     </div>
   );

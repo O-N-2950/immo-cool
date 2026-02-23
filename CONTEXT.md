@@ -1,5 +1,5 @@
 # 🗂️ CONTEXT.md — www.immocool.ch
-> Dernière mise à jour : 23 février 2026
+> Dernière mise à jour : 23 février 2026 (session 2)
 > Ce fichier est à coller en début de chaque nouvelle conversation dans le projet "www.immocool.ch"
 
 ---
@@ -34,52 +34,76 @@ Paiements via **Stripe Connect** — propriétaires et artisans s'onboardent sur
 | Couche | Tech | Détail |
 |--------|------|--------|
 | Framework | Next.js 15 (App Router) | React 19 |
-| UI | "Swiss Noir Luxury" design system | Cormorant Garamond + DM Sans + JetBrains Mono |
+| UI | "Swiss Noir Luxury" design system v3 | Cormorant Garamond + DM Sans + JetBrains Mono |
 | Base de données | PostgreSQL + Prisma 5 | Railway managed |
 | Auth | JWT + bcrypt | next-auth v5 beta |
 | Paiements | Stripe Connect | Webhooks avec filtre metadata |
-| Charts | Recharts | Dashboard analytics |
+| Charts | Recharts | Dashboard analytics + RadarChart matching |
 | Icons | Lucide React | Iconographie complète |
 | Deploy | Railway | CI/CD automatique via GitHub |
 
 ---
 
-## 🖥️ INTERFACE UTILISATEUR (v2 — Swiss Noir Luxury)
+## 🖥️ INTERFACE UTILISATEUR (v3 — Swiss Noir Luxury)
 
 ### Design System
 - **Esthétique :** Dark luxury fintech — fond noir (#07060A), accents or (#D4A853), touches purple (#A78BFA)
 - **Typo :** Cormorant Garamond (display), DM Sans (body), JetBrains Mono (code/data)
-- **Composants réutilisables :** Badge, ScoreRing, GlowButton, StatCard, Input, Dropdown
+- **Composants réutilisables :** Badge, Ring (score), Btn (GlowButton), Stat, Inp, Sel, Fade, SignaturePad, PropertyMap, NotifPanel, VisitScheduler
 
-### Pages implémentées (ImmoCool.jsx — composant principal)
-1. **Landing page** — Hero animé, pricing 3 colonnes (Locataire GRATUIT / Proprio 50% / Artisan 10%), grille fonctionnalités, trust badges
-2. **Auth (Login/Register)** — Split screen, sélection de rôle (Propriétaire/Locataire/Artisan), formulaire complet
-3. **Dashboard propriétaire** — Sidebar collapsible, stats cards animés, graphique performance (AreaChart recharts), widget conformité légale, fil d'activité
-4. **Gestion des biens** — Liste avec vues/candidatures, formulaire création en 4 étapes (infos → caractéristiques → finances → vérification légale)
-5. **Matching IA (Candidatures)** — Split view candidats/détail, ScoreRing animé, RadarChart 6 axes (budget/localisation/pièces/timing/fiabilité/vérifié), barres de progression par critère
-6. **Baux** — Liste des baux actifs/en attente, références légales (taux hypo + IPC + OBLF), boutons signature
-7. **État des lieux interactif** — Navigation par pièce, 8 pièces prédéfinies, notation (Neuf/Bon/Usé/Endommagé), champ remarques + photo par élément, barre de progression, bouton signature
-8. **Artisans / Messages / Paramètres** — Pages placeholder (Prochainement)
+### Pages complètes (ImmoCool.jsx — 1426 lignes)
+
+#### Public
+1. **Landing page** — Hero animé (3 étapes), pricing 3 colonnes, grille 6 features, trust badges, footer
+2. **Auth (Login/Register)** — Split screen, sélection rôle (Propriétaire/Locataire/Artisan), routage selon rôle
+
+#### Dashboard Propriétaire (8 sous-pages)
+3. **Overview** — 4 stat cards animés, AreaChart performance 6 mois, widget conformité légale (taux hypo + IPC + OBLF), fil d'activité temps réel
+4. **Mes biens** — Liste biens avec stats (vues/candidatures), **formulaire création 4 étapes** (infos → caractéristiques + upload photos → finances + preview commission → vérification légale + récapitulatif)
+5. **Candidatures (Matching IA)** — Split view avec Ring score animé, RadarChart 6 axes, barres de progression, message du candidat, boutons Accepter/Contacter/Refuser
+6. **Baux** — Liste baux actifs/en attente, **signature de bail avec SignaturePad tactile**, références légales, calcul auto commission Stripe
+7. **État des lieux** — 3 modes (Entrée/Sortie/**Comparaison**), navigation par pièce (8 pièces), notation 4 niveaux, remarques + photos, barre progression, **comparaison entrée/sortie avec détection dégradations** (fond rouge + icône alerte), **signature tactile canvas**
+8. **Messages** — Liste conversations avec indicateur non-lu, threads avec bulles chat, champ saisie + envoi
+9. **Artisans Marketplace** — Filtres par spécialité (7 types), cards avec rating/avis/tarif, **flow complet demande d'intervention** (sélection bien → description → envoi → confirmation avec mention commission 10%)
+10. **Paramètres** — Profil, Stripe Connect status
+
+#### Dashboard Locataire (5 sous-pages)
+11. **Recherche** — Filtres (canton/pièces/budget), liste biens avec favoris ❤️, **carte SVG interactive** avec pins prix, fiche détaillée (photos, features, badges, description)
+12. **Candidature** — Bouton "Postuler gratuitement" → message optionnel → confirmation
+13. **Visite** — **VisitScheduler** : calendrier 7 jours + créneaux horaires → confirmation avec notification
+14. **Mes candidatures** — Liste avec Ring score, statut (Acceptée/En attente/Refusée)
+15. **Mon bail** — Détails complets (loyer, taux hypo, IPC, prochain terme), boutons PDF/télécharger, **aide à la résiliation** (calcul date limite automatique selon canton)
+16. **Mon état des lieux** — Entrée (complété) + Sortie (à planifier)
+17. **Messages** — Même composant que propriétaire
+
+### Composants avancés
+- **SignaturePad** — Canvas HTML5, dessin souris + tactile (mobile), bouton effacer/valider
+- **PropertyMap** — Carte SVG du Jura avec pins interactifs (prix), sélection/highlight
+- **VisitScheduler** — Calendrier dates (7 jours) + créneaux horaires, confirmation
+- **NotifPanel** — Dropdown 5 types (match/candidature/légal/bail/paiement), badges non-lu
+- **Ring** — Score circulaire animé avec couleur adaptative
+- **Fade** — Transition d'apparition avec délai configurable
+- **Transitions de page** — Fade out/in (200ms) entre chaque navigation
 
 ---
 
 ## 🗄️ SCHÉMA BASE DE DONNÉES (Prisma)
 
 ### Utilisateurs & Auth
-- **User** : email, passwordHash, role (LANDLORD/TENANT/ARTISAN/ADMIN), status (PENDING/ACTIVE/SUSPENDED), profil complet, nationalité, type de permis suisse (B/C/L/G), stripeCustomerId, stripeConnectId
-- **TenantProfile** : revenus, type emploi, critères recherche (budget, cantons préférés, pièces, date déménagement), score 0-100, vérifications (revenus, identité, références)
-- **ArtisanProfile** : companyName, spécialités (PLOMBERIE/ELECTRICITE/PEINTURE/SERRURERIE/MENUISERIE/CHAUFFAGE/NETTOYAGE/DEMENAGEMENT/JARDINAGE/GENERAL), cantons couverts, tarif horaire, note moyenne
+- **User** : email, passwordHash, role (LANDLORD/TENANT/ARTISAN/ADMIN), status, profil complet, nationalité, permis suisse, stripeCustomerId, stripeConnectId
+- **TenantProfile** : revenus, emploi, critères recherche, score 0-100, vérifications
+- **ArtisanProfile** : companyName, spécialités (7 types), cantons couverts, tarif horaire, note
 
 ### Biens & Processus
-- **Property** : type (APARTMENT/HOUSE/STUDIO/COMMERCIAL/PARKING/STORAGE), statut (DRAFT/ACTIVE/RENTED/ARCHIVED), localisation complète + canton, caractéristiques (pièces, m², balcon, parking...), loyer + charges + dépôt, images[], loyer précédent (formulaire officiel)
-- **Application** : candidature locataire ↔ bien, score matching 0-100, statut (PENDING/SHORTLISTED/ACCEPTED/REJECTED/WITHDRAWN)
-- **Lease** : bail complet avec conformité cantonale, signatures électroniques, taux hypothécaire + IPC au moment du bail, état des lieux entrée/sortie (JSON), commission Stripe
-- **Intervention** : demande artisan, statut (REQUESTED→COMPLETED→PAID), devis, montant final, commission 10%, rating 1-5
+- **Property** : type, statut, localisation + canton, caractéristiques, loyer + charges + dépôt, images[], loyer précédent
+- **Application** : candidature avec score matching 0-100, statut (PENDING/SHORTLISTED/ACCEPTED/REJECTED)
+- **Lease** : bail complet, signatures, taux hypothécaire + IPC au moment du bail, état des lieux JSON, commission Stripe
+- **Intervention** : demande artisan, devis, montant final, commission 10%, rating
 
 ### Système
-- **Message** : messagerie propriétaire ↔ locataire (contexte bien/bail)
-- **AuditLog** : traçabilité complète de toutes les actions
-- **LegalReference** : taux hypothécaire de référence (1.25%) + IPC — auto-fetch système
+- **Message** : messagerie propriétaire ↔ locataire
+- **AuditLog** : traçabilité
+- **LegalReference** : taux hypothécaire + IPC auto-fetch
 
 ---
 
@@ -104,26 +128,19 @@ Paiements via **Stripe Connect** — propriétaires et artisans s'onboardent sur
 
 ## 🇨🇭 FONCTIONNALITÉS CLÉS
 
-### Moteur de règles cantonales (26 cantons)
-- Dates de résiliation officielles par canton
-- Formulaire de loyer initial obligatoire (OBLF art. 19 al. 1)
-- Taux hypothécaire de référence : 1.25% (auto-fetch + stocké en BDD)
-- IPC auto-fetch + stocké en BDD
-- Validation conformité automatique
+### Matching IA (6 critères, pondération 100 pts)
+- Budget (30 pts), Localisation (25 pts), Pièces (15 pts), Timing (10 pts), Fiabilité (15 pts), Vérification (5 pts)
 
 ### Documents générés automatiquement
 - Bail à loyer conforme au canton
-- État des lieux entrée + sortie (JSON stocké, présence humaine requise)
+- Formulaire de loyer initial (si requis par canton)
+- État des lieux entrée + sortie (JSON, présence physique requise)
 - Quittance de clés
 - Aide à la résiliation
 
-### Matching IA (6 critères, pondération 100 pts)
-- Budget (30 pts) — ratio loyer/revenu, norme suisse 33%
-- Localisation (25 pts) — canton + ville préférés
-- Pièces (15 pts) — correspondance nombre de pièces
-- Timing (10 pts) — compatibilité date d'emménagement
-- Fiabilité (15 pts) — score profil locataire
-- Vérification (5 pts) — identité, revenus, références
+### Marketplace Artisans (7 spécialités)
+- Plomberie, Électricité, Peinture, Serrurerie, Chauffage, Menuiserie, Nettoyage
+- Flow: demande → devis → intervention → paiement Stripe → commission 10% auto
 
 ---
 
@@ -141,78 +158,74 @@ immo-cool/
 │   │   ├── matching/           # Score matching
 │   │   ├── properties/         # CRUD biens
 │   │   └── stripe/             # checkout, connect, webhook
-│   ├── components/ImmoCool.jsx # Composant principal (Swiss Noir Luxury)
+│   ├── components/ImmoCool.jsx # Composant principal v3 (1426 lignes)
 │   ├── globals.css
 │   ├── layout.jsx
 │   └── page.jsx
 ├── lib/
 │   ├── auth.js
-│   ├── cantonal-rules.js
+│   ├── cantonal-rules.js       # 26 cantons avec règles
 │   ├── documents/              # bail, état des lieux, quittance, résiliation, PDF
-│   ├── legal-references.js
-│   ├── matching.js
+│   ├── legal-references.js     # 3 niveaux: hardcoded → BDD → auto-fetch web
+│   ├── matching.js             # Scoring 6 critères
 │   ├── prisma.js
 │   └── stripe.js
-├── prisma/schema.prisma
+├── prisma/schema.prisma        # 11 modèles
 ├── docs/
 │   ├── DEPLOY-GUIDE.md
 │   └── Réglementation_Bail_Suisse_par_Canton.md
+├── CONTEXT.md
 └── railway.toml
 ```
 
 ---
 
-## ⚠️ POINTS D'ATTENTION / DÉCISIONS TECHNIQUES
+## ⚠️ POINTS D'ATTENTION
 
-1. **Stripe partagé** : Même compte Stripe (PEP's Swiss SA) que PEP's V2 — les webhooks utilisent des filtres metadata pour distinguer les paiements immocool vs PEP's
-2. **État des lieux** : Seul processus NON automatisé — présence physique du propriétaire requise, stocké en JSON dans `Lease.etatLieuxEntree` / `etatLieuxSortie`
-3. **next-auth v5 bêta** — attention aux breaking changes si mise à jour
-4. **Taux hypothécaire** : Toujours lire depuis `LegalReference` en BDD, ne jamais hardcoder
-5. **Cantons** : 26 cantons avec règles différentes — toujours vérifier le bon canton avant de générer un document
-6. **Multi-rôles** : Un user peut être propriétaire ET artisan (stripeConnectId commun)
-7. **Domaine** : www.immocool.ch (pas www.immo.cool) — immo.cool en attente TMCH chez Namebay
-8. **Design System** : "Swiss Noir Luxury" — dark bg (#07060A), gold accents (#D4A853), fonts: Cormorant Garamond / DM Sans / JetBrains Mono
+1. **Stripe partagé** avec PEP's Swiss SA — webhooks filtrent par metadata
+2. **État des lieux** = seul processus NON automatisé (présence physique)
+3. **next-auth v5 bêta** — attention breaking changes
+4. **Taux hypothécaire** : toujours lire depuis LegalReference BDD
+5. **26 cantons** avec règles différentes — toujours vérifier le canton
+6. **Multi-rôles** : User peut être propriétaire ET artisan
+7. **Domaine** : www.immocool.ch (immo.cool en attente TMCH chez Namebay)
+8. **Design System** : "Swiss Noir Luxury" v3 — dark #07060A, gold #D4A853
 
 ---
 
 ## 🔑 VARIABLES D'ENVIRONNEMENT (Railway)
 
-- `DATABASE_URL` : PostgreSQL Railway (auto-injecté)
-- `NEXTAUTH_SECRET` : Secret next-auth
-- `NEXTAUTH_URL` : https://www.immocool.ch
-- `STRIPE_SECRET_KEY` : Clé Stripe PEP's Swiss SA
-- `STRIPE_WEBHOOK_SECRET` : Secret webhook immocool
-- `JWT_SECRET` : Pour tokens JWT custom
+- `DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `JWT_SECRET`
 
 ---
 
 ## 📋 RESTE À FAIRE (priorité)
 
 ### 🔴 Critique
-- [ ] Connecter le frontend (ImmoCool.jsx) aux API routes réelles (fetch au lieu de mock data)
+- [ ] Connecter frontend (ImmoCool.jsx) aux API routes réelles (fetch au lieu de mock data)
 - [ ] Génération PDF réelle (ajouter pdfkit ou puppeteer)
-- [ ] Upload photos (S3 ou Railway volume)
-- [ ] Notifications / emails (confirmation inscription, nouveau match, rappels)
-- [ ] Signature électronique (Skribble ou signature tactile maison)
+- [ ] Upload photos réel (S3 ou Railway volume)
+- [ ] Notifications emails (nodemailer / Resend)
+- [ ] Stripe Connect onboarding réel en production
 
 ### 🟡 Important
-- [ ] Messagerie propriétaire ↔ locataire (API + UI)
-- [ ] Agenda / coordination de visites
+- [ ] Agenda visites persistant (BDD)
 - [ ] GoCaution intégration
-- [ ] Tests end-to-end avec vraies données
+- [ ] Tests end-to-end
+- [ ] PWA / responsive mobile
 
 ### 🟢 V2
-- [ ] Marketplace artisans (flow complet)
-- [ ] Résiliation automatisée
-- [ ] Comparaison état des lieux entrée/sortie
-- [ ] PWA / app mobile
-- [ ] Extension multi-cantons (UI locataire)
+- [ ] Résiliation automatisée avec envoi recommandé
+- [ ] Comparaison photos état des lieux (IA)
+- [ ] Analytics avancées propriétaire
+- [ ] Extension marketplace artisans (devis en ligne, paiement progressif)
+- [ ] App mobile native
 
 ---
 
 ## 🔗 LIENS UTILES
 
-- Repo GitHub : https://github.com/O-N-2950/immo-cool
-- Production : https://www.immocool.ch
-- Railway : https://immo-cool-production.up.railway.app
-- Doc réglementation : `docs/Réglementation_Bail_Suisse_par_Canton.md`
+- Repo: https://github.com/O-N-2950/immo-cool
+- Prod: https://www.immocool.ch
+- Railway: https://immo-cool-production.up.railway.app
+- Doc: `docs/Réglementation_Bail_Suisse_par_Canton.md`
