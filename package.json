@@ -1,7 +1,7 @@
 {
   "name": "immo-cool",
-  "version": "1.0.0",
-  "description": "immo.cool \u2014 La plateforme immobili\u00e8re 100% gratuite pour les locataires",
+  "version": "2.0.0",
+  "description": "immo.cool — Plateforme immobilière suisse 100% automatisée",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -13,11 +13,13 @@
     "@prisma/client": "^5.22.0",
     "bcryptjs": "^3.0.3",
     "jsonwebtoken": "^9.0.3",
+    "lucide-react": "^0.460.0",
     "next": "^15.1.0",
     "next-auth": "^5.0.0-beta.30",
     "prisma": "^5.22.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "recharts": "^2.13.0",
     "stripe": "^20.3.1"
   }
 }

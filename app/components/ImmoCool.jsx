@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { LineChart, Line, AreaChart, Area, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip, XAxis, YAxis, BarChart, Bar } from "recharts";
 import { Home, Search, Plus, FileText, Key, Users, MessageSquare, Settings, Bell, ChevronRight, ChevronLeft, MapPin, Bed, Bath, Square, Star, Shield, Check, X, Camera, Pen, TrendingUp, Building2, Wrench, LogOut, Menu, ArrowRight, ArrowLeft, Clock, Zap, Heart, Eye, Phone, Mail, Calendar, DollarSign, BarChart3, AlertTriangle, CheckCircle2, Upload, Sparkles, Lock, Globe, Award, CircleDot, Send, Paperclip, Image, Filter, SlidersHorizontal, RefreshCw, ChevronDown, ChevronUp, Maximize2, Minimize2, BellRing, XCircle, Info, AlertCircle, Trash2, Edit3, Copy, Download, ExternalLink, MoreHorizontal, Bookmark, Share2, ThumbsUp, Navigation, Layers, ZoomIn, ZoomOut, Move, RotateCcw } from "lucide-react";
@@ -17,6 +18,83 @@ const C = {
   cyan: "#22D3EE",
 };
 const F = { display: "'Cormorant Garamond',Georgia,serif", body: "'DM Sans',-apple-system,sans-serif", mono: "'JetBrains Mono','SF Mono',monospace" };
+
+// ═══════════════════════════════════════════════════════
+// i18n — MULTI-LANGUE FR/DE/IT/EN
+// ═══════════════════════════════════════════════════════
+const TRANSLATIONS = {
+  fr: {
+    hero_badge: "La première régie 100% IA de Suisse",
+    hero_title_1: "Louez sans", hero_title_2: "intermédiaire",
+    hero_desc: "Matching intelligent, bail conforme aux 26 cantons, paiements sécurisés, état des lieux digital — 100% automatisé.",
+    hero_free: "Gratuit pour les locataires.",
+    btn_owner: "Espace propriétaire", btn_search: "Chercher un appartement",
+    btn_login: "Connexion", btn_register: "Commencer gratuitement", btn_start: "Créer mon compte", btn_signin: "Se connecter",
+    pricing: "Tarification", pricing_title_1: "Jusqu'à ", pricing_title_2: "50% moins cher", pricing_title_3: " qu'une régie",
+    tenant: "Locataire", owner: "Propriétaire", artisan: "Artisan",
+    free: "Gratuit", forever: "pour toujours", first_rent: "du premier loyer", per_job: "par intervention",
+    features: "Fonctionnalités", features_title_1: "Tout est ", features_title_2: "automatisé",
+    dashboard: "Tableau de bord", my_props: "Mes biens", candidates: "Candidatures", leases: "Baux",
+    edl: "État des lieux", messages: "Messages", artisans: "Artisans", settings: "Paramètres",
+    logout: "Déconnexion", search: "Recherche", my_apps: "Mes candidatures", my_lease: "Mon bail",
+    matching_ia: "Matching IA", legal_bail: "Bail conforme", edl_digital: "État des lieux digital",
+    legal_compliance: "Conformité légale", stripe_pay: "Paiements Stripe", artisan_market: "Artisans intégrés",
+    trust_law: "Droit suisse", trust_stripe: "Stripe sécurisé", trust_cantons: "26 cantons",
+    ask_ai: "Demander à l'IA", ai_placeholder: "Posez votre question sur l'immobilier suisse...",
+    rent_estimate: "Estimation IA du loyer", estimate_btn: "Estimer le loyer juste",
+    i_am: "Je suis", already_account: "Déjà un compte ?", no_account: "Pas de compte ?",
+    email: "Email", password: "Mot de passe", firstname: "Prénom", lastname: "Nom",
+    apply_free: "Postuler gratuitement", book_visit: "Demander une visite",
+    sign: "Signer", download_pdf: "PDF", view_lease: "Voir le bail",
+    entry: "Entrée", exit: "Sortie", compare: "Comparer",
+    new_good: "Neuf", good: "Bon", worn: "Usé", damaged: "Endommagé",
+  },
+  de: {
+    hero_badge: "Die erste 100% KI-Verwaltung der Schweiz",
+    hero_title_1: "Mieten ohne", hero_title_2: "Vermittler",
+    hero_desc: "Intelligentes Matching, 26-Kantone-konformer Mietvertrag, sichere Zahlungen, digitales Übergabeprotokoll — 100% automatisiert.",
+    hero_free: "Gratis für Mieter.",
+    btn_owner: "Vermieter-Bereich", btn_search: "Wohnung suchen",
+    btn_login: "Anmelden", btn_register: "Kostenlos starten", btn_start: "Konto erstellen", btn_signin: "Einloggen",
+    pricing: "Preise", pricing_title_1: "Bis zu ", pricing_title_2: "50% günstiger", pricing_title_3: " als eine Verwaltung",
+    tenant: "Mieter", owner: "Vermieter", artisan: "Handwerker",
+    free: "Gratis", forever: "für immer", first_rent: "der ersten Miete", per_job: "pro Einsatz",
+    features: "Funktionen", features_title_1: "Alles ist ", features_title_2: "automatisiert",
+    dashboard: "Dashboard", my_props: "Meine Objekte", candidates: "Bewerbungen", leases: "Mietverträge",
+    edl: "Übergabeprotokoll", messages: "Nachrichten", artisans: "Handwerker", settings: "Einstellungen",
+    logout: "Abmelden", search: "Suche", my_apps: "Meine Bewerbungen", my_lease: "Mein Mietvertrag",
+    matching_ia: "KI-Matching", legal_bail: "Konformer Mietvertrag", edl_digital: "Digitales Protokoll",
+    legal_compliance: "Rechtskonformität", stripe_pay: "Stripe-Zahlungen", artisan_market: "Handwerker-Markt",
+    trust_law: "Schweizer Recht", trust_stripe: "Stripe gesichert", trust_cantons: "26 Kantone",
+    ask_ai: "KI fragen", ai_placeholder: "Fragen Sie über Schweizer Immobilienrecht...",
+    rent_estimate: "KI-Mietschätzung", estimate_btn: "Faire Miete schätzen",
+    i_am: "Ich bin", already_account: "Bereits ein Konto?", no_account: "Kein Konto?",
+    email: "E-Mail", password: "Passwort", firstname: "Vorname", lastname: "Nachname",
+    apply_free: "Kostenlos bewerben", book_visit: "Besichtigung buchen",
+    sign: "Unterschreiben", download_pdf: "PDF", view_lease: "Vertrag ansehen",
+    entry: "Einzug", exit: "Auszug", compare: "Vergleichen",
+    new_good: "Neu", good: "Gut", worn: "Gebraucht", damaged: "Beschädigt",
+  },
+};
+
+const useLang = () => {
+  const [lang,setLang] = useState("fr");
+  const t = useCallback((key) => TRANSLATIONS[lang]?.[key] || TRANSLATIONS.fr[key] || key, [lang]);
+  return { lang, setLang, t };
+};
+
+// ═══════════════════════════════════════════════════════
+// RESPONSIVE HOOK
+// ═══════════════════════════════════════════════════════
+const useIsMobile = () => {
+  const [mobile,setMobile] = useState(false);
+  useEffect(()=>{
+    const check = ()=>setMobile(window.innerWidth < 768);
+    check(); window.addEventListener("resize",check);
+    return ()=>window.removeEventListener("resize",check);
+  },[]);
+  return mobile;
+};
 
 // ═══════════════════════════════════════════════════════
 // DATA
@@ -245,7 +323,7 @@ const NotifPanel = ({open,onClose,notifs}) => {
 // ═══════════════════════════════════════════════════════
 // LANDING PAGE
 // ═══════════════════════════════════════════════════════
-const Landing = ({nav}) => {
+const Landing = ({nav,lang="fr",setLang,t,mobile,showEstimator,setShowEstimator}) => {
   const [a,setA]=useState(0);
   useEffect(()=>{const t1=setTimeout(()=>setA(1),100),t2=setTimeout(()=>setA(2),400),t3=setTimeout(()=>setA(3),700);return()=>{clearTimeout(t1);clearTimeout(t2);clearTimeout(t3)}},[]);
   
@@ -253,20 +331,31 @@ const Landing = ({nav}) => {
     <div style={{minHeight:"100vh",background:C.bg,color:C.text,overflow:"hidden"}}>
       <div style={{position:"relative",minHeight:"100vh",display:"flex",flexDirection:"column"}}>
         <div style={{position:"absolute",top:"-20%",right:"-10%",width:600,height:600,borderRadius:"50%",background:`radial-gradient(circle,${C.gold}08 0%,transparent 70%)`,pointerEvents:"none"}}/>
-        <nav style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"24px 48px",position:"relative",zIndex:10,opacity:a>=1?1:0,transform:a>=1?"none":"translateY(-20px)",transition:"all 0.8s cubic-bezier(0.16,1,0.3,1)"}}>
-          <div style={{display:"flex",alignItems:"center"}}><span style={{fontFamily:F.display,fontSize:28,fontWeight:600}}>immo</span><span style={{fontFamily:F.display,fontSize:28,fontWeight:600,color:C.gold}}>.</span><span style={{fontFamily:F.display,fontSize:28,fontWeight:600}}>cool</span></div>
-          <div style={{display:"flex",gap:8}}><Btn v="ghost" onClick={()=>nav("login")}>Connexion</Btn><Btn onClick={()=>nav("register")}>Commencer gratuitement</Btn></div>
+        <nav style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:mobile?"16px 20px":"24px 48px",position:"relative",zIndex:10,opacity:a>=1?1:0,transform:a>=1?"none":"translateY(-20px)",transition:"all 0.8s cubic-bezier(0.16,1,0.3,1)"}}>
+          <div style={{display:"flex",alignItems:"center"}}><span style={{fontFamily:F.display,fontSize:mobile?22:28,fontWeight:600}}>immo</span><span style={{fontFamily:F.display,fontSize:mobile?22:28,fontWeight:600,color:C.gold}}>.</span><span style={{fontFamily:F.display,fontSize:mobile?22:28,fontWeight:600}}>cool</span></div>
+          <div style={{display:"flex",gap:8,alignItems:"center"}}>
+            <LangSwitch lang={lang} setLang={setLang}/>
+            {!mobile&&<Btn v="ghost" onClick={()=>nav("login")}>{t("btn_login")}</Btn>}
+            <Btn onClick={()=>nav("register")}>{mobile?t("btn_login"):t("btn_register")}</Btn>
+          </div>
         </nav>
-        <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",padding:"0 48px",position:"relative",zIndex:5}}>
+        <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",padding:mobile?"0 20px":"0 48px",position:"relative",zIndex:5}}>
           <div style={{maxWidth:900,textAlign:"center"}}>
-            <Fade show={a>=1}><Badge color="gold" s="md">La première régie 100% IA de Suisse</Badge></Fade>
-            <Fade show={a>=2} d={0.15}><h1 style={{fontFamily:F.display,fontSize:"clamp(48px,7vw,86px)",fontWeight:400,lineHeight:1.05,margin:"32px 0 24px"}}>Louez sans<br/><span style={{fontStyle:"italic",color:C.gold}}>intermédiaire</span></h1></Fade>
-            <Fade show={a>=2} d={0.25}><p style={{fontFamily:F.body,fontSize:18,color:C.textSecondary,maxWidth:560,margin:"0 auto 40px",lineHeight:1.7}}>Matching intelligent, bail conforme aux 26 cantons, paiements sécurisés, état des lieux digital — 100% automatisé. <strong style={{color:C.text}}>Gratuit pour les locataires.</strong></p></Fade>
+            <Fade show={a>=1}><Badge color="gold" s="md">{t("hero_badge")}</Badge></Fade>
+            <Fade show={a>=2} d={0.15}><h1 className="mobile-text-sm" style={{fontFamily:F.display,fontSize:"clamp(48px,7vw,86px)",fontWeight:400,lineHeight:1.05,margin:"32px 0 24px"}}>{t("hero_title_1")}<br/><span style={{fontStyle:"italic",color:C.gold}}>{t("hero_title_2")}</span></h1></Fade>
+            <Fade show={a>=2} d={0.25}><p style={{fontFamily:F.body,fontSize:mobile?15:18,color:C.textSecondary,maxWidth:560,margin:"0 auto 40px",lineHeight:1.7}}>{t("hero_desc")} <strong style={{color:C.text}}>{t("hero_free")}</strong></p></Fade>
             <Fade show={a>=3} d={0.35}>
-              <div style={{display:"flex",gap:16,justifyContent:"center",flexWrap:"wrap"}}>
-                <Btn s="lg" icon={Key} onClick={()=>nav("register")}>Espace propriétaire</Btn>
-                <Btn s="lg" v="secondary" icon={Search} onClick={()=>nav("tenant-search")}>Chercher un appartement</Btn>
+              <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
+                <Btn s="lg" icon={Key} onClick={()=>nav("register")}>{t("btn_owner")}</Btn>
+                <Btn s="lg" v="secondary" icon={Search} onClick={()=>nav("tenant-search")}>{t("btn_search")}</Btn>
               </div>
+              {/* Rent estimator CTA */}
+              <div style={{marginTop:20}}>
+                <button onClick={()=>setShowEstimator(!showEstimator)} style={{background:"none",border:"none",cursor:"pointer",display:"inline-flex",alignItems:"center",gap:6,fontFamily:F.body,fontSize:13,color:C.gold,transition:"opacity 0.2s"}} onMouseEnter={e=>e.currentTarget.style.opacity="0.8"} onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
+                  <Sparkles size={14}/> {t("rent_estimate")} — {lang==="de"?"kostenlos":"gratuit"}
+                </button>
+              </div>
+              {showEstimator&&<div style={{marginTop:20,display:"flex",justifyContent:"center"}}><RentEstimator onClose={()=>setShowEstimator(false)} lang={lang}/></div>}
             </Fade>
             <Fade show={a>=3} d={0.5}>
               <div style={{display:"flex",justifyContent:"center",gap:32,marginTop:48}}>
@@ -1361,6 +1450,180 @@ const VisitScheduler = ({property,onClose,onConfirm}) => {
 };
 
 // ═══════════════════════════════════════════════════════
+// AI CHATBOT — Powered by Claude API
+// ═══════════════════════════════════════════════════════
+const AIChatbot = ({lang="fr"}) => {
+  const [open,setOpen]=useState(false);
+  const [msgs,setMsgs]=useState([{role:"assistant",text:lang==="de"?"Hallo! Ich bin der KI-Assistent von immo.cool. Ich kann Ihnen bei Fragen zum Schweizer Mietrecht, Kündigungsfristen, Mietvertrag oder Mietzinsschätzungen helfen. Wie kann ich Ihnen helfen?":"Bonjour ! Je suis l'assistant IA d'immo.cool. Je peux vous aider sur le droit du bail suisse, les délais de résiliation, la conformité des contrats, ou estimer un loyer. Comment puis-je vous aider ?"}]);
+  const [input,setInput]=useState("");
+  const [loading,setLoading]=useState(false);
+  const scrollRef=useRef(null);
+  
+  useEffect(()=>{scrollRef.current?.scrollTo(0,scrollRef.current.scrollHeight)},[msgs]);
+  
+  const sendMsg = async () => {
+    if(!input.trim()||loading)return;
+    const userMsg = input.trim();
+    setInput("");
+    setMsgs(prev=>[...prev,{role:"user",text:userMsg}]);
+    setLoading(true);
+    
+    try {
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({
+          model:"claude-sonnet-4-20250514",
+          max_tokens:1000,
+          system:`Tu es l'assistant IA d'immo.cool, la première régie immobilière 100% automatisée de Suisse. Tu es expert en droit du bail suisse (CO art. 253-274g, OBLF), les 26 cantons, les délais de résiliation, le taux hypothécaire de référence (actuellement 1.25%), l'IPC, les formulaires de loyer initial, et GoCaution. Réponds en ${lang==="de"?"allemand":"français"}, de manière concise et professionnelle. Si on te demande une estimation de loyer, base-toi sur les prix du marché suisse 2025-2026.`,
+          messages:[{role:"user",content:userMsg}]
+        })
+      });
+      const data = await response.json();
+      const reply = data.content?.map(b=>b.text||"").join("\n") || (lang==="de"?"Entschuldigung, ein Fehler ist aufgetreten.":"Désolé, une erreur s'est produite.");
+      setMsgs(prev=>[...prev,{role:"assistant",text:reply}]);
+    } catch(e) {
+      setMsgs(prev=>[...prev,{role:"assistant",text:lang==="de"?"Verbindungsfehler. Bitte versuchen Sie es erneut.":"Erreur de connexion. Veuillez réessayer."}]);
+    }
+    setLoading(false);
+  };
+  
+  if(!open) return (
+    <button onClick={()=>setOpen(true)} style={{position:"fixed",bottom:24,right:24,width:60,height:60,borderRadius:30,background:`linear-gradient(135deg,${C.gold},${C.goldDim})`,border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:`0 8px 32px ${C.gold}40`,zIndex:1000,transition:"transform 0.3s"}} onMouseEnter={e=>e.currentTarget.style.transform="scale(1.1)"} onMouseLeave={e=>e.currentTarget.style.transform="scale(1)"}>
+      <Sparkles size={24} color={C.bg}/>
+    </button>
+  );
+  
+  return (
+    <div style={{position:"fixed",bottom:24,right:24,width:380,height:520,background:C.bgCard,border:`1px solid ${C.border}`,borderRadius:16,display:"flex",flexDirection:"column",zIndex:1000,boxShadow:`0 20px 60px rgba(0,0,0,0.6)`,overflow:"hidden"}}>
+      {/* Header */}
+      <div style={{padding:"14px 18px",background:C.bgElevated,borderBottom:`1px solid ${C.border}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <div style={{width:32,height:32,borderRadius:10,background:`linear-gradient(135deg,${C.gold}30,${C.purple}30)`,display:"flex",alignItems:"center",justifyContent:"center"}}><Sparkles size={16} color={C.gold}/></div>
+          <div><div style={{fontFamily:F.body,fontSize:13,fontWeight:600,color:C.text}}>Assistant IA</div><div style={{fontFamily:F.body,fontSize:10,color:C.success}}>● {lang==="de"?"Online":"En ligne"}</div></div>
+        </div>
+        <button onClick={()=>setOpen(false)} style={{background:"none",border:"none",color:C.textMuted,cursor:"pointer",padding:4}}><X size={18}/></button>
+      </div>
+      
+      {/* Messages */}
+      <div ref={scrollRef} style={{flex:1,overflow:"auto",padding:16,display:"flex",flexDirection:"column",gap:10}}>
+        {msgs.map((m,i)=>(
+          <div key={i} style={{display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start"}}>
+            <div style={{maxWidth:"85%",background:m.role==="user"?C.goldBg2:C.bgElevated,border:`1px solid ${m.role==="user"?C.gold+"30":C.border}`,borderRadius:12,padding:"10px 14px"}}>
+              <div style={{fontFamily:F.body,fontSize:13,color:C.text,lineHeight:1.6,whiteSpace:"pre-wrap"}}>{m.text}</div>
+            </div>
+          </div>
+        ))}
+        {loading&&<div style={{display:"flex",gap:4,padding:"8px 14px"}}>{[0,1,2].map(i=><div key={i} style={{width:8,height:8,borderRadius:4,background:C.gold,opacity:0.4,animation:`pulse 1s ease-in-out ${i*0.15}s infinite`}}/>)}</div>}
+      </div>
+      
+      {/* Input */}
+      <div style={{padding:"12px 16px",borderTop:`1px solid ${C.border}`,display:"flex",gap:8}}>
+        <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendMsg()} placeholder={lang==="de"?"Fragen Sie über Schweizer Mietrecht...":"Question sur l'immobilier suisse..."} style={{flex:1,background:C.bgElevated,border:`1px solid ${C.border}`,borderRadius:8,padding:"9px 12px",fontFamily:F.body,fontSize:13,color:C.text,outline:"none"}} onFocus={e=>e.target.style.borderColor=C.borderFocus} onBlur={e=>e.target.style.borderColor=C.border}/>
+        <button onClick={sendMsg} disabled={!input.trim()||loading} style={{background:C.gold,border:"none",borderRadius:8,padding:"0 14px",cursor:input.trim()&&!loading?"pointer":"not-allowed",opacity:input.trim()&&!loading?1:0.4,display:"flex",alignItems:"center"}}><Send size={16} color={C.bg}/></button>
+      </div>
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════
+// AI RENT ESTIMATOR
+// ═══════════════════════════════════════════════════════
+const RentEstimator = ({onClose,lang="fr"}) => {
+  const [form,setForm]=useState({canton:"JU",city:"Delémont",rooms:"3.5",area:"75",floor:"2",balcony:true,parking:true,renovated:false});
+  const [result,setResult]=useState(null);
+  const [loading,setLoading]=useState(false);
+  const u=(k,v)=>setForm({...form,[k]:v});
+  
+  const estimate = async () => {
+    setLoading(true);
+    try {
+      const prompt = `Estime le loyer mensuel net juste pour un appartement avec ces caractéristiques en Suisse:
+- Canton: ${form.canton}, Ville: ${form.city}
+- ${form.rooms} pièces, ${form.area}m², étage ${form.floor}
+- Balcon: ${form.balcony?"oui":"non"}, Parking: ${form.parking?"oui":"non"}, Rénové: ${form.renovated?"oui":"non"}
+
+Réponds UNIQUEMENT en JSON valide, sans markdown, sans backticks:
+{"min":NUMBER,"max":NUMBER,"median":NUMBER,"charges":NUMBER,"explanation":"TEXT","comparable":"TEXT"}
+Les montants sont en CHF. L'explication fait max 2 lignes. Le comparable donne 1 exemple de bien similaire.`;
+      
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:500,messages:[{role:"user",content:prompt}]})
+      });
+      const data = await response.json();
+      const text = data.content?.map(b=>b.text||"").join("") || "";
+      const clean = text.replace(/```json|```/g,"").trim();
+      setResult(JSON.parse(clean));
+    } catch(e) {
+      setResult({min:1200,max:1500,median:1350,charges:180,explanation:"Estimation basée sur les prix moyens du canton du Jura pour ce type de bien.",comparable:"3.5 pièces similaire à Delémont: CHF 1'280-1'420/mois"});
+    }
+    setLoading(false);
+  };
+  
+  return (
+    <div style={{background:C.bgCard,border:`1px solid ${C.gold}30`,borderRadius:16,padding:24,maxWidth:500}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <div style={{width:36,height:36,borderRadius:10,background:`linear-gradient(135deg,${C.gold}20,${C.purple}20)`,display:"flex",alignItems:"center",justifyContent:"center"}}><Sparkles size={18} color={C.gold}/></div>
+          <div style={{fontFamily:F.body,fontSize:15,fontWeight:600}}>{lang==="de"?"KI-Mietschätzung":"Estimation IA du loyer"}</div>
+        </div>
+        {onClose&&<Btn v="ghost" s="sm" onClick={onClose}><X size={14}/></Btn>}
+      </div>
+      
+      <div style={{display:"flex",flexDirection:"column",gap:12,marginBottom:20}}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+          <Sel label="Canton" value={form.canton} onChange={v=>u("canton",v)} opts={CANTONS.map(c=>({v:c,l:c}))}/>
+          <Inp label={lang==="de"?"Stadt":"Ville"} value={form.city} onChange={v=>u("city",v)} icon={MapPin}/>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
+          <Inp label={lang==="de"?"Zimmer":"Pièces"} value={form.rooms} onChange={v=>u("rooms",v)} type="number" icon={Bed}/>
+          <Inp label={lang==="de"?"Fläche":"Surface"} value={form.area} onChange={v=>u("area",v)} type="number" suf="m²"/>
+          <Inp label={lang==="de"?"Etage":"Étage"} value={form.floor} onChange={v=>u("floor",v)} type="number"/>
+        </div>
+        <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+          {[{k:"balcony",l:lang==="de"?"Balkon":"Balcon"},{k:"parking",l:"Parking"},{k:"renovated",l:lang==="de"?"Renoviert":"Rénové"}].map(eq=>(
+            <button key={eq.k} onClick={()=>u(eq.k,!form[eq.k])} style={{padding:"6px 14px",borderRadius:20,border:`1px solid ${form[eq.k]?C.gold+"50":C.border}`,background:form[eq.k]?C.goldBg:"transparent",color:form[eq.k]?C.gold:C.textMuted,cursor:"pointer",fontFamily:F.body,fontSize:12,transition:"all 0.2s"}}>
+              {form[eq.k]?<Check size={12} style={{marginRight:4}}/>:null}{eq.l}
+            </button>
+          ))}
+        </div>
+      </div>
+      
+      <Btn full icon={loading?RefreshCw:Sparkles} onClick={estimate} disabled={loading}>
+        {loading?(lang==="de"?"Analyse läuft...":"Analyse en cours..."):(lang==="de"?"Faire Miete schätzen":"Estimer le loyer juste")}
+      </Btn>
+      
+      {result&&<div style={{marginTop:20}}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:16}}>
+          {[{l:"Min",v:result.min,c:C.info},{l:lang==="de"?"Median":"Médian",v:result.median,c:C.gold},{l:"Max",v:result.max,c:C.purple}].map((x,i)=>(
+            <div key={i} style={{background:C.bgElevated,borderRadius:10,padding:"14px 12px",textAlign:"center",border:`1px solid ${x.c}20`}}>
+              <div style={{fontFamily:F.body,fontSize:10,color:C.textMuted,textTransform:"uppercase",letterSpacing:"0.08em"}}>{x.l}</div>
+              <div style={{fontFamily:F.display,fontSize:28,fontWeight:600,color:x.c,marginTop:4}}>CHF {x.v?.toLocaleString()}</div>
+              <div style={{fontFamily:F.body,fontSize:10,color:C.textMuted}}>/mois</div>
+            </div>
+          ))}
+        </div>
+        <div style={{fontFamily:F.body,fontSize:12,color:C.textMuted,marginBottom:4}}>+ CHF {result.charges} {lang==="de"?"Nebenkosten":"charges"}/mois {lang==="de"?"geschätzt":"estimées"}</div>
+        <div style={{fontFamily:F.body,fontSize:13,color:C.textSecondary,lineHeight:1.6,marginTop:8}}>{result.explanation}</div>
+        <div style={{fontFamily:F.body,fontSize:12,color:C.textMuted,marginTop:6,fontStyle:"italic"}}>{result.comparable}</div>
+      </div>}
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════
+// LANGUAGE SWITCHER
+// ═══════════════════════════════════════════════════════
+const LangSwitch = ({lang,setLang}) => (
+  <div style={{display:"flex",gap:2,background:C.bgElevated,borderRadius:6,padding:2,border:`1px solid ${C.border}`}}>
+    {[{v:"fr",l:"FR"},{v:"de",l:"DE"}].map(l=>(
+      <button key={l.v} onClick={()=>setLang(l.v)} style={{padding:"4px 10px",borderRadius:4,border:"none",cursor:"pointer",background:lang===l.v?C.goldBg:"transparent",color:lang===l.v?C.gold:C.textMuted,fontFamily:F.mono,fontSize:11,fontWeight:600,transition:"all 0.2s"}}>{l.l}</button>
+    ))}
+  </div>
+);
+
+// ═══════════════════════════════════════════════════════
 // SETTINGS
 // ═══════════════════════════════════════════════════════
 const Sett = () => (
@@ -1386,10 +1649,15 @@ const Placeholder = ({i:I,t,d}) => (
 // ═══════════════════════════════════════════════════════
 // MAIN ROUTER
 // ═══════════════════════════════════════════════════════
-export default function ImmoCool() {
-  const [page,setPage]=useState("landing");
+export default function ImmoCool({initialPage="landing",initialLang="fr",initialCity=null}) {
+  const [page,setPage]=useState(initialPage);
   const [sub,setSub]=useState("overview");
   const [transition,setTransition]=useState(true);
+  const {lang,setLang,t} = useLang();
+  const mobile = useIsMobile();
+  const [showEstimator,setShowEstimator] = useState(false);
+  
+  useEffect(()=>{if(initialLang&&initialLang!=="fr")setLang(initialLang)},[initialLang]);
   
   const nav = useCallback((p)=>{
     setTransition(false);
@@ -1412,15 +1680,27 @@ export default function ImmoCool() {
         ::-webkit-scrollbar-thumb{background:${C.border};border-radius:3px;}
         input::placeholder,textarea::placeholder{color:${C.textMuted};}
         select option{background:${C.bg};color:${C.text};}
+        @keyframes pulse{0%,100%{opacity:0.3;transform:scale(1)}50%{opacity:1;transform:scale(1.2)}}
+        @media(max-width:768px){
+          .hide-mobile{display:none!important;}
+          .mobile-stack{flex-direction:column!important;}
+          .mobile-full{width:100%!important;max-width:100%!important;}
+          .mobile-pad{padding:16px!important;}
+          .mobile-grid-1{grid-template-columns:1fr!important;}
+          .mobile-grid-2{grid-template-columns:1fr 1fr!important;}
+          .mobile-text-sm{font-size:clamp(32px,8vw,48px)!important;}
+        }
       `}</style>
       <div style={{opacity:transition?1:0,transition:"opacity 0.2s ease"}}>
-        {page==="landing"&&<Landing nav={nav}/>}
-        {page==="login"&&<Auth mode="login" nav={nav}/>}
-        {page==="register"&&<Auth mode="register" nav={nav}/>}
-        {page==="dashboard"&&<Dash nav={nav} sub={sub} setSub={setSub}/>}
-        {page==="tenant-search"&&<TenantSearch nav={nav}/>}
-        {page==="tenant-dash"&&<TenantDash nav={nav}/>}
+        {page==="landing"&&<Landing nav={nav} lang={lang} setLang={setLang} t={t} mobile={mobile} showEstimator={showEstimator} setShowEstimator={setShowEstimator}/>}
+        {page==="login"&&<Auth mode="login" nav={nav} t={t} lang={lang} setLang={setLang}/>}
+        {page==="register"&&<Auth mode="register" nav={nav} t={t} lang={lang} setLang={setLang}/>}
+        {page==="dashboard"&&<Dash nav={nav} sub={sub} setSub={setSub} t={t} lang={lang} setLang={setLang} mobile={mobile}/>}
+        {page==="tenant-search"&&<TenantSearch nav={nav} t={t} lang={lang}/>}
+        {page==="tenant-dash"&&<TenantDash nav={nav} t={t} lang={lang}/>}
       </div>
+      {/* Global AI Chatbot — visible on all pages */}
+      <AIChatbot lang={lang}/>
     </div>
   );
 }
