@@ -6,16 +6,16 @@ const C={bg:"#07060A",bgCard:"#0F0E14",bgEl:"#16151E",border:"#2A2838",gold:"#D4
 const F={d:"'Cormorant Garamond',Georgia,serif",b:"'DM Sans',sans-serif",m:"'JetBrains Mono',monospace"};
 const CANTONS=["JU","GE","VD","NE","FR","BE","VS","ZH","BS","LU","ZG","TI","SG","AG","SO","TG","GR","BL","SH","NW","SZ","OW","AR","AI","UR","GL"];
 
-// Fake demand data (seeded to look real — will be replaced by DB)
-const SEED_DEMANDS = [
-  {id:1,rooms:"3.5",city:"Delémont",canton:"JU",maxRent:1350,desc:"Couple, 2 CDI, revenus 8'500/mois. Cherchons pour avril 2026.",date:"2026-02-20",status:"active",verified:true},
-  {id:2,rooms:"4.5",city:"Porrentruy",canton:"JU",maxRent:1600,desc:"Famille avec 1 enfant. Recherchons proche école. Disponibles dès mai.",date:"2026-02-18",status:"active",verified:true},
-  {id:3,rooms:"2.5",city:"Delémont",canton:"JU",maxRent:950,desc:"Étudiant HES, garant parental. Dès septembre 2026.",date:"2026-02-22",status:"active",verified:false},
-  {id:4,rooms:"3.5",city:"Saignelégier",canton:"JU",maxRent:1200,desc:"Personne seule, CDI industrie horlogère, revenus stables.",date:"2026-02-15",status:"active",verified:true},
-  {id:5,rooms:"5.5",city:"Delémont",canton:"JU",maxRent:2200,desc:"Famille 2 enfants, double CDI. Parking obligatoire. Dès juillet.",date:"2026-02-21",status:"active",verified:true},
-  {id:6,rooms:"2.5",city:"Genève",canton:"GE",maxRent:1800,desc:"Jeune professionnel, CDI banque privée. Cherche Eaux-Vives ou Plainpalais.",date:"2026-02-19",status:"active",verified:true},
-  {id:7,rooms:"3.5",city:"Lausanne",canton:"VD",maxRent:1900,desc:"Couple sans enfant, 2 CDI tech. Proche transports.",date:"2026-02-17",status:"active",verified:true},
-  {id:8,rooms:"4.5",city:"Bienne",canton:"BE",maxRent:1500,desc:"Famille bilingue FR/DE, CDI. Quartier calme souhaité.",date:"2026-02-23",status:"active",verified:true},
+// Données de secours si l'API ne retourne rien (première visite, DB vide)
+const FALLBACK_DEMANDS = [
+  {id:"f1",rooms:3.5,city:"Delémont",canton:"JU",maxBudget:1350,description:"Couple, 2 CDI, revenus 8'500/mois. Cherchons pour avril 2026.",createdAt:"2026-02-20",verified:true},
+  {id:"f2",rooms:4.5,city:"Porrentruy",canton:"JU",maxBudget:1600,description:"Famille avec 1 enfant. Recherchons proche école. Disponibles dès mai.",createdAt:"2026-02-18",verified:true},
+  {id:"f3",rooms:2.5,city:"Delémont",canton:"JU",maxBudget:950,description:"Étudiant HES, garant parental. Dès septembre 2026.",createdAt:"2026-02-22",verified:false},
+  {id:"f4",rooms:3.5,city:"Saignelégier",canton:"JU",maxBudget:1200,description:"Personne seule, CDI industrie horlogère, revenus stables.",createdAt:"2026-02-15",verified:true},
+  {id:"f5",rooms:5.5,city:"Delémont",canton:"JU",maxBudget:2200,description:"Famille 2 enfants, double CDI. Parking obligatoire. Dès juillet.",createdAt:"2026-02-21",verified:true},
+  {id:"f6",rooms:2.5,city:"Genève",canton:"GE",maxBudget:1800,description:"Jeune professionnel, CDI banque privée. Cherche Eaux-Vives ou Plainpalais.",createdAt:"2026-02-19",verified:true},
+  {id:"f7",rooms:3.5,city:"Lausanne",canton:"VD",maxBudget:1900,description:"Couple sans enfant, 2 CDI tech. Proche transports.",createdAt:"2026-02-17",verified:true},
+  {id:"f8",rooms:4.5,city:"Bienne",canton:"BE",maxBudget:1500,description:"Famille bilingue FR/DE, CDI. Quartier calme souhaité.",createdAt:"2026-02-23",verified:true},
 ];
 
 const DemandCard = ({d, isOwner}) => (
@@ -28,11 +28,11 @@ const DemandCard = ({d, isOwner}) => (
         <span style={{fontFamily:F.b,fontSize:13,color:C.sec}}>— {d.city} ({d.canton})</span>
         {d.verified && <span style={{background:C.successBg,borderRadius:10,padding:"2px 8px",fontFamily:F.m,fontSize:9,color:C.success}}>✓ vérifié</span>}
       </div>
-      <span style={{fontFamily:F.m,fontSize:18,fontWeight:700,color:C.text}}>max {d.maxRent.toLocaleString("fr-CH")} <span style={{fontSize:10,fontWeight:400,color:C.muted}}>CHF/mois</span></span>
+      <span style={{fontFamily:F.m,fontSize:18,fontWeight:700,color:C.text}}>max {Number(d.maxBudget).toLocaleString("fr-CH")} <span style={{fontSize:10,fontWeight:400,color:C.muted}}>CHF/mois</span></span>
     </div>
-    <p style={{fontFamily:F.b,fontSize:13,color:C.sec,lineHeight:1.6,marginBottom:10}}>{d.desc}</p>
+    <p style={{fontFamily:F.b,fontSize:13,color:C.sec,lineHeight:1.6,marginBottom:10}}>{d.description}</p>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-      <span style={{fontFamily:F.m,fontSize:10,color:C.muted}}>{new Date(d.date).toLocaleDateString("fr-CH")}</span>
+      <span style={{fontFamily:F.m,fontSize:10,color:C.muted}}>{new Date(d.createdAt).toLocaleDateString("fr-CH")}</span>
       {isOwner && <button style={{padding:"6px 14px",background:C.goldBg,border:`1px solid ${C.gold}30`,borderRadius:6,fontFamily:F.b,fontSize:11,color:C.gold,cursor:"pointer",fontWeight:600}}>Proposer mon bien →</button>}
     </div>
   </div>
@@ -41,21 +41,64 @@ const DemandCard = ({d, isOwner}) => (
 export default function Demande() {
   const [mode,setMode]=useState("browse"); // browse | post | owner
   const [filter,setFilter]=useState({canton:"",rooms:"",maxRent:""});
+  const [demands,setDemands]=useState([]);
+  const [loading,setLoading]=useState(true);
   const [posting,setPosting]=useState(false);
   const [posted,setPosted]=useState(false);
+  const [postError,setPostError]=useState("");
   const [form,setForm]=useState({rooms:"3.5",city:"",canton:"JU",maxRent:"",desc:"",email:"",phone:""});
   const uf=(k,v)=>setForm({...form,[k]:v});
   
-  const filtered = SEED_DEMANDS.filter(d => {
-    if(filter.canton && d.canton !== filter.canton) return false;
-    if(filter.rooms && d.rooms !== filter.rooms) return false;
-    return true;
-  });
+  // Fetch demands from API (fallback to seed data)
+  useEffect(()=>{
+    const params = new URLSearchParams();
+    if(filter.canton) params.set("canton", filter.canton);
+    if(filter.rooms) params.set("rooms", filter.rooms);
+    fetch(`/api/reverse?${params}`)
+      .then(r=>r.json())
+      .then(data=>{
+        if(data.requests && data.requests.length > 0) {
+          setDemands(data.requests);
+        } else {
+          // Fallback: filtrer les données de démo
+          const f = FALLBACK_DEMANDS.filter(d => {
+            if(filter.canton && d.canton !== filter.canton) return false;
+            if(filter.rooms && d.rooms !== parseFloat(filter.rooms)) return false;
+            return true;
+          });
+          setDemands(f);
+        }
+      })
+      .catch(()=>setDemands(FALLBACK_DEMANDS))
+      .finally(()=>setLoading(false));
+  },[filter.canton, filter.rooms]);
   
-  const handlePost = () => {
-    // In production: POST to /api/reverse + store in DB
+  const handlePost = async () => {
     setPosting(true);
-    setTimeout(()=>{setPosting(false);setPosted(true)},1200);
+    setPostError("");
+    try {
+      const res = await fetch("/api/reverse", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          email: form.email,
+          phone: form.phone || null,
+          firstName: null,
+          canton: form.canton,
+          city: form.city,
+          rooms: parseFloat(form.rooms),
+          maxBudget: parseFloat(form.maxRent),
+          description: form.desc,
+        }),
+      });
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.error || "Erreur serveur");
+      setPosted(true);
+    } catch(e) {
+      setPostError(e.message);
+    } finally {
+      setPosting(false);
+    }
   };
 
   return (
@@ -97,9 +140,9 @@ export default function Demande() {
           {/* Stats bar */}
           <div style={{display:"flex",gap:10,marginBottom:20,flexWrap:"wrap"}}>
             {[
-              {v:SEED_DEMANDS.length,l:"demandes actives"},
-              {v:SEED_DEMANDS.filter(d=>d.verified).length,l:"profils vérifiés"},
-              {v:[...new Set(SEED_DEMANDS.map(d=>d.canton))].length,l:"cantons"},
+              {v:demands.length,l:"demandes actives"},
+              {v:demands.filter(d=>d.verified).length,l:"profils vérifiés"},
+              {v:[...new Set(demands.map(d=>d.canton))].length,l:"cantons"},
             ].map((s,i)=>(
               <div key={i} style={{background:C.bgCard,border:`1px solid ${C.border}`,borderRadius:8,padding:"8px 14px",display:"flex",gap:6,alignItems:"baseline"}}>
                 <span style={{fontFamily:F.m,fontSize:18,fontWeight:700,color:C.gold}}>{s.v}</span>
@@ -122,8 +165,9 @@ export default function Demande() {
 
           {/* Demand cards */}
           <div style={{display:"flex",flexDirection:"column",gap:10}}>
-            {filtered.map(d=><DemandCard key={d.id} d={d} isOwner={true}/>)}
-            {filtered.length===0&&<div style={{textAlign:"center",padding:40,color:C.muted,fontFamily:F.b}}>Aucune demande pour ces critères.</div>}
+            {loading ? <div style={{textAlign:"center",padding:40,color:C.muted,fontFamily:F.b}}>⏳ Chargement...</div> :
+             demands.map(d=><DemandCard key={d.id} d={d} isOwner={true}/>)}
+            {!loading && demands.length===0&&<div style={{textAlign:"center",padding:40,color:C.muted,fontFamily:F.b}}>Aucune demande pour ces critères.</div>}
           </div>
 
           {/* CTA for owners */}
@@ -195,6 +239,7 @@ export default function Demande() {
               style={{width:"100%",marginTop:20,padding:"14px",background:form.email&&form.maxRent&&form.city?`linear-gradient(135deg,${C.gold},#A07D2E)`:"#333",border:"none",borderRadius:10,color:C.bg,fontFamily:F.b,fontSize:14,fontWeight:600,cursor:form.email&&form.maxRent&&form.city?"pointer":"not-allowed",opacity:posting?0.6:1}}>
               {posting?"⏳ Publication...":"📣 Publier ma recherche gratuitement"}
             </button>
+            {postError && <div style={{marginTop:10,padding:"10px 14px",background:"rgba(248,113,113,0.1)",border:"1px solid rgba(248,113,113,0.3)",borderRadius:8,fontFamily:F.b,fontSize:12,color:C.danger}}>{postError}</div>}
           </div>
         </div>}
 

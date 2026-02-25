@@ -422,6 +422,51 @@ model AuditLog {
   @@index([createdAt])
 }
 
+// ============================================
+// REVERSE MARKETPLACE — Demandes locataires
+// ============================================
+
+enum SearchRequestStatus {
+  ACTIVE
+  MATCHED
+  CLOSED
+  EXPIRED
+}
+
+model SearchRequest {
+  id              String              @id @default(cuid())
+  
+  // Contact (peut être anonyme ou lié à un user)
+  userId          String?
+  email           String
+  phone           String?
+  firstName       String?
+  
+  // Critères de recherche
+  canton          String
+  city            String?
+  rooms           Float?
+  maxBudget       Decimal?
+  description     String?
+  moveInDate      DateTime?
+  
+  // Status & meta
+  status          SearchRequestStatus @default(ACTIVE)
+  verified        Boolean             @default(false)
+  viewCount       Int                 @default(0)
+  responseCount   Int                 @default(0)
+  
+  // Expiration auto (30 jours)
+  expiresAt       DateTime
+  
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@index([canton, status])
+  @@index([status, expiresAt])
+  @@index([email])
+}
+
 // ============================================================
 // RÉFÉRENCES LÉGALES — Taux hypothécaire de référence + IPC
 // Valeurs obligatoires pour tout bail (OBLF art. 19 al. 1)
