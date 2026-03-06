@@ -1,17 +1,17 @@
 /**
- * immo.cool — Next.js Middleware
+ * Next.js Middleware — immo.cool
+ * Inspiré de WinWin V2 auth middleware
  * 
- * Protège les routes API qui nécessitent une authentification.
- * Les routes publiques (outils, health, auth) restent accessibles.
+ * 1. Redirect immocool.ch → www.immocool.ch (apex domain fix)
+ * 2. Protection routes /api/properties, /api/leases, /api/documents (JWT)
+ * 3. Headers de sécurité
  */
 
 import { NextResponse } from 'next/server';
 
-// Routes publiques — pas besoin d'auth
+// Routes publiques (pas besoin d'auth)
 const PUBLIC_ROUTES = [
   '/api/health',
-  '/api/auth/login',
-  '/api/auth/register',
   '/api/ai/chat',
   '/api/ai/estimate',
   '/api/tools/contest',
@@ -20,56 +20,61 @@ const PUBLIC_ROUTES = [
   '/api/tools/generate-edl',
   '/api/cantonal',
   '/api/legal-references',
+  '/api/auth/login',
+  '/api/auth/register',
   '/api/stripe/webhook',
 ];
 
-// Routes semi-publiques — GET public, POST/PUT/DELETE protégé
-const SEMI_PUBLIC_ROUTES = [
-  '/api/reverse',
+// Routes protégées (nécessitent JWT)
+const PROTECTED_ROUTES = [
   '/api/properties',
+  '/api/leases',
+  '/api/documents',
+  '/api/matching',
+  '/api/stripe/checkout',
+  '/api/stripe/connect',
+  '/api/stripe/artisan',
 ];
 
 export function middleware(request) {
-  const { pathname } = request.nextUrl;
+  const { pathname, hostname } = request.nextUrl;
 
-  // Ne traiter que les routes API
-  if (!pathname.startsWith('/api/')) {
-    return NextResponse.next();
+  // 1. REDIRECT apex → www (inspiré WinWin V2)
+  if (hostname === 'immocool.ch') {
+    const url = request.nextUrl.clone();
+    url.hostname = 'www.immocool.ch';
+    return NextResponse.redirect(url, 301);
   }
 
-  // Routes publiques → passer
-  if (PUBLIC_ROUTES.some(r => pathname === r || pathname.startsWith(r + '/'))) {
-    return NextResponse.next();
-  }
+  // 2. SECURITY HEADERS
+  const response = NextResponse.next();
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self)');
 
-  // Routes semi-publiques → GET passe, le reste nécessite auth
-  if (SEMI_PUBLIC_ROUTES.some(r => pathname === r || pathname.startsWith(r + '/'))) {
-    if (request.method === 'GET') {
-      return NextResponse.next();
+  // 3. AUTH CHECK pour routes protégées
+  const isProtected = PROTECTED_ROUTES.some(r => pathname.startsWith(r));
+  if (isProtected) {
+    const token = request.cookies.get('immo_session')?.value 
+      || request.headers.get('authorization')?.replace('Bearer ', '');
+    
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Non authentifié', code: 'AUTH_REQUIRED' },
+        { status: 401 }
+      );
     }
+    // Note: la vérification JWT complète se fait dans les routes elles-mêmes
+    // Le middleware fait juste un gate rapide
   }
 
-  // Vérifier le token
-  const token = request.cookies.get('token')?.value
-    || request.headers.get('authorization')?.replace('Bearer ', '');
-
-  if (!token) {
-    return NextResponse.json(
-      { error: 'Authentification requise', code: 'AUTH_REQUIRED' },
-      { status: 401 }
-    );
-  }
-
-  // Vérification JWT basique (la vérification complète se fait dans les routes)
-  // Le middleware passe le token, les routes vérifient la signature
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set('x-auth-token', token);
-
-  return NextResponse.next({
-    request: { headers: requestHeaders },
-  });
+  return response;
 }
 
 export const config = {
-  matcher: ['/api/:path*'],
+  matcher: [
+    // Tout sauf static files, _next, favicon
+    '/((?!_next/static|_next/image|favicon.ico|icon-.*\\.png|robots.txt|sitemap.xml).*)',
+  ],
 };
