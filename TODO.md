@@ -1,117 +1,121 @@
-# TODO.md — immocool.ch Road to Domination
-> Mise à jour : 23 février 2026
-
-## Légende
-- 🔴 = Critique (bloquant)
-- 🟡 = Important (scale)
-- 🟢 = Monétisation
-- 🔵 = Domination
-- ✅ = Fait
-- 🚧 = En cours
-- ⭐ = Avantage compétitif unique
+# TODO — immo.cool
+## Dernière mise à jour : 6 mars 2026
 
 ---
 
-## 🔴 PHASE 1 — MVP LIVE (semaines 1-4)
-**Objectif : premier euro encaissé**
+## ✅ FAIT (v3.2)
+- [x] 6 outils gratuits frontend + backend
+- [x] Moteur PDF unifié (bail, résiliation, contestation, EDL)
+- [x] 3 endpoints IA (chat, estimation, contestation)
+- [x] Reverse marketplace /demande avec BDD
+- [x] Anti-crash WinWin V2 (instrumentation, restart x10, healthcheck)
+- [x] Middleware sécurité (redirect, headers, auth gate)
+- [x] Error boundaries (global-error, not-found)
+- [x] 26 env vars configurées Railway
+- [x] Prisma migrations auto au démarrage
+- [x] SEO: sitemap 33 URLs, layouts, metadata
+- [x] i18n FR/DE (80+ clés, 25 villes)
+- [x] Landing page complète (~1750 lignes)
+- [x] Build clean 42 routes, 0 erreurs
 
-### Outils publics gratuits (funnel)
-- [🚧] /outils/bail-gratuit — Générateur bail PDF 26 cantons, 6 étapes
-- [ ] /outils/resiliation — Générateur résiliation PDF
-- [ ] /outils/calculateur-loyer — Estimation IA via /api/ai/estimate
-- [ ] /outils/assistant-ia — Chatbot IA public via /api/ai/chat
-- [ ] /outils/contestation ⭐ — Analyse bail + lettre contestation auto (BUZZ MÉDIAS)
-- [ ] /outils/etat-des-lieux — Générateur EDL PDF
+---
 
-### Technique
-- [✅] Structure Next.js 15 + App Router
-- [✅] UI ImmoCool.jsx v3.1 (1706 lignes, i18n, responsive, PWA)
-- [✅] API routes backend (auth, cantonal, properties, matching, leases, etc.)
-- [✅] API IA server-side (/api/ai/chat + /api/ai/estimate avec fallback)
-- [✅] Prisma schema 11 modèles
-- [✅] SEO pages villes FR (13) + DE (12)
-- [✅] Sitemap dynamique + robots.txt
-- [✅] PWA manifest
-- [ ] Connecter auth réelle (JWT → cookies → middleware Next.js)
-- [ ] Connecter frontend aux API (remplacer TOUTES les données mock)
-- [ ] Génération PDF réelle (bail, EDL, résiliation) — pdfkit ou puppeteer
-- [ ] Stripe Connect onboarding production
-- [ ] Deploy fonctionnel Railway → www.immocool.ch
-- [ ] Google Search Console + soumettre sitemap
+## 🔴 PHASE 1 — PRIORITAIRE (clients existants)
+
+### Auth & Inscription
+- [ ] Page /login avec formulaire email/mot de passe
+- [ ] Page /register avec choix rôle (propriétaire/locataire/artisan)
+- [ ] API /api/auth/me — retour profil utilisateur connecté
+- [ ] API /api/auth/logout — suppression cookie
+- [ ] Middleware auth complet (vérif JWT dans routes protégées)
+- [ ] Page /dashboard — redirection selon rôle
+
+### Dashboard Propriétaire
+- [ ] Connecter ImmoCool.jsx wizard création bien → POST /api/properties
+- [ ] Liste de mes biens (GET /api/properties?owner=me)
+- [ ] Voir les candidatures reçues
+- [ ] Stripe Connect onboarding (flux réel, pas mock)
+- [ ] Paiement commission 50% après signature bail
+
+### Dashboard Locataire
+- [ ] Page profil locataire (scoring, vérification)
+- [ ] Candidater à un bien
+- [ ] Suivi de mes candidatures
+- [ ] Reverse marketplace : mes demandes actives
+
+### Connecter Frontend → API
+- [ ] Landing page : remplacer données mock par vrais appels API
+- [ ] /demande : charger les demandes depuis /api/reverse (plus de seed data)
+- [ ] Outils : connecter génération PDF réelle (download du fichier)
+
+### Stripe Production
+- [ ] Créer les produits Stripe (commission, documents premium)
+- [ ] Flux paiement commission propriétaire
+- [ ] Webhook Stripe fonctionnel (signature + traitement)
+- [ ] Page succès/annulation paiement
+
+---
+
+## 🟡 PHASE 2 — GROWTH
+
+### SEO & Acquisition
+- [ ] Google Search Console → soumettre sitemap
+- [ ] Google Analytics / Plausible
 - [ ] Générer icônes PWA (icon-192.png, icon-512.png)
-- [ ] Tests basiques (routes API + génération PDF)
+- [ ] Méta tags Open Graph avec images
+- [ ] Blog /articles pour SEO longue traîne
+
+### Aspirateur d'annonces
+- [ ] Scraper Immoscout24, Homegate, Anibis
+- [ ] Stockage annonces en BDD (dédup par adresse)
+- [ ] Matching automatique annonces ↔ demandes locataires
+- [ ] Alertes email pour locataires
+
+### Notifications
+- [ ] Email transactionnel (Resend/Sendgrid)
+- [ ] Notification nouvelle candidature → propriétaire
+- [ ] Notification réponse → locataire
+- [ ] Rappel expiration demande (J-7)
+
+### WhatsApp Bot
+- [ ] Intégration WhatsApp Business API
+- [ ] Chatbot droit du bail via WhatsApp
+- [ ] Alertes nouvelles annonces par WhatsApp
 
 ---
 
-## 🟡 PHASE 2 — ASPIRATION (semaines 4-8)
-**Objectif : 100 biens listés, 500 locataires inscrits**
+## 🔵 PHASE 3 — SCALE
 
-### Acquisition automatisée
-- [ ] Scraper nocturne Homegate + ImmoScout24 + Flatfox (n8n)
-- [ ] Templates email outreach IA (Resend + Claude personnalisation)
-- [ ] Import 1-clic d'annonce existante vers immo.cool
-- [ ] /demande/ ⭐ — Reverse marketplace (locataires publient critères)
+### Widget Embed
+- [ ] Script embed pour sites de régies
+- [ ] Calculateur de loyer en widget
+- [ ] Formulaire de candidature embed
 
-### Canaux
-- [ ] Bot WhatsApp ⭐ (Twilio + Claude + PDF gen)
-- [ ] Blog SEO : 10-20 articles ("délai résiliation genève", "formulaire loyer initial vaud", etc.)
-- [ ] Google Ads budget mini CHF 200-500/mois ciblant outils gratuits
+### SaaS B2B
+- [ ] Dashboard régie (multi-propriétaires)
+- [ ] API management pour régies
+- [ ] Abonnement mensuel Stripe
 
-### Monétisation early
-- [ ] Intégrer GoCaution/SwissCaution dans flow signature bail (affiliation)
-- [ ] Intégrer proposition assurance RC ménage (affiliation)
-
----
-
-## 🟢 PHASE 3 — MONÉTISATION (mois 2-4)
-**Objectif : CHF 10'000 MRR**
-
-### Revenus directs
-- [ ] Bail premium CHF 29 (e-signature intégrée + EDL pré-rempli + notifications)
-- [ ] Contestation loyer : CHF 49 flat ou 10% de l'économie annuelle
-- [ ] Marketplace artisans live (Stripe Connect onboarding artisans)
-
-### Distribution
-- [ ] Widget embed ⭐ (`<script>` pour communes, notaires, fiduciaires)
-- [ ] Dashboard data public : stats loyers par ville/canton → SEO viral
-- [ ] Programme parrainage propriétaire → propriétaire (CHF 50 crédit)
-
-### PR / Médias
-- [ ] Communiqué de presse avec angle "contestation loyer IA"
-- [ ] Contact : Le Quotidien Jurassien, RTS Info, 20 Minutes, ICTjournal
-- [ ] Publication données exclusives ("loyers moyens Jura Q1 2026")
+### Data & Analytics
+- [ ] Dashboard analytics (visites, conversions)
+- [ ] Export data par canton
+- [ ] Indices de marché automatisés
 
 ---
 
-## 🔵 PHASE 4 — DOMINATION (mois 4-12)
-**Objectif : leader Romandie, expansion Suisse alémanique**
+## 🟣 PHASE 4 — EXPANSION
 
-### Produits
-- [ ] SaaS B2B white-label pour régies — CHF 99-299/mois
-- [ ] API publique données loyers (freemium : 100 req/jour gratuit, pro CHF 49/mois)
-- [ ] Paiement instantané propriétaire (partenariat fintech type Advanon)
-
-### Tech avancée
-- [ ] Résiliation auto avec envoi recommandé (API Poste Suisse)
-- [ ] Comparaison photos EDL via IA vision (Claude)
-- [ ] Scoring locataire amélioré (historique, revenus vérifiés)
-- [ ] Italien dans i18n
-- [ ] App mobile native (React Native) ou PWA avancée
-
-### Expansion
-- [ ] SEO agressif Suisse alémanique (DE)
-- [ ] Partenariats communes Jura puis Romandie
-- [ ] Levée de fonds si traction confirmée (objectif : CHF 500k seed)
-- [ ] Embauche #1 : growth marketer
+- [ ] Expansion multi-cantons (VD, GE, BE, ZH)
+- [ ] Contestation premium avec avocat partenaire
+- [ ] Assurance loyer intégrée (affiliation)
+- [ ] App mobile PWA complète
+- [ ] Signature électronique légale (Skribble)
 
 ---
 
-## MÉTRIQUES CLÉS À SUIVRE
-| Métrique | Phase 1 | Phase 2 | Phase 3 | Phase 4 |
-|----------|---------|---------|---------|---------|
-| Biens listés | 5 | 100 | 500 | 2'000 |
-| Locataires inscrits | 20 | 500 | 3'000 | 15'000 |
-| PDFs générés/mois | 50 | 500 | 2'000 | 10'000 |
-| Baux signés/mois | 1 | 10 | 50 | 200 |
-| MRR (CHF) | 0 | 1'000 | 10'000 | 50'000 |
-| Visites site/mois | 200 | 5'000 | 30'000 | 150'000 |
+## Points d'attention
+- ⚠️ Stripe: clés TEST, passer en LIVE avant premiers paiements réels
+- ⚠️ Disclaimers juridiques sur tous les outils (pas un substitut d'avocat)
+- ⚠️ RGPD/LPD : politique de confidentialité à compléter
+- ⚠️ 26 cantons = 26 règles → cantonal-rules.js à enrichir progressivement
+- ⚠️ Taux hypothécaire et IPC : vérifier régulièrement les valeurs OFL/OFS
