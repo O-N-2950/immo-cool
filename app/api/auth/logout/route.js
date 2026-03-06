@@ -1,19 +1,11 @@
 /**
  * POST /api/auth/logout — Déconnexion
  */
-
 import { NextResponse } from 'next/server';
 
 export async function POST() {
-  const response = NextResponse.json({ message: 'Déconnecté' });
-
-  response.cookies.set('token', '', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 0,
-    path: '/',
-  });
-
+  const response = NextResponse.json({ success: true, message: 'Déconnecté' });
+  response.cookies.set('immo_session', '', { maxAge: 0, path: '/' });
+  response.cookies.set('token', '', { maxAge: 0, path: '/' }); // legacy
   return response;
 }

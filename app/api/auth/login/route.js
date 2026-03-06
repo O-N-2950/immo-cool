@@ -46,7 +46,7 @@ export async function POST(request) {
     });
 
     // Set HTTP-only cookie
-    response.cookies.set('token', token, {
+    response.cookies.set('immo_session', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
