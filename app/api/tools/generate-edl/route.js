@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
+import { sanitizeObject, safeErrorResponse } from '@/lib/security';
 import { generateEdlPDF } from '../../../../lib/pdf-engine.js';
 
 export async function POST(request) {
   try {
-    const data = await request.json();
+    const rawData = await request.json(); const data = sanitizeObject(rawData);
     const pdfBytes = await generateEdlPDF(data);
     
     return new Response(pdfBytes, {

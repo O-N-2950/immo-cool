@@ -6,6 +6,7 @@
  */
 
 import { NextResponse } from 'next/server';
+import { sanitizeObject, safeErrorResponse } from '@/lib/security';
 import prisma from '@/lib/prisma';
 import { validateLease, getComplianceChecklist, generateInitialRentFormData, REFERENCE_RATE } from '@/lib/cantonal-rules';
 
@@ -33,7 +34,7 @@ export async function GET(request) {
 
     return NextResponse.json({ leases });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const safe = safeErrorResponse(error); return NextResponse.json({ error: safe.error }, { status: safe.status });
   }
 }
 
@@ -151,6 +152,6 @@ export async function POST(request) {
     }, { status: 201 });
   } catch (error) {
     console.error('[immo.cool] Lease creation error:', error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const safe = safeErrorResponse(error); return NextResponse.json({ error: safe.error }, { status: safe.status });
   }
 }

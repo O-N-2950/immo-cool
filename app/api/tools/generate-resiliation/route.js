@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
+import { sanitizeObject, safeErrorResponse } from '@/lib/security';
 import { generateResiliationPDF } from '../../../../lib/pdf-engine.js';
 
 export async function POST(request) {
   try {
-    const data = await request.json();
+    const rawData = await request.json(); const data = sanitizeObject(rawData);
     const pdfBytes = await generateResiliationPDF(data);
     
     return new Response(pdfBytes, {

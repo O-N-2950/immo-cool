@@ -19,11 +19,12 @@
  */
 
 import { NextResponse } from 'next/server';
+import { sanitizeObject, safeErrorResponse } from '@/lib/security';
 import stripe, { createMetadata } from '@/lib/stripe';
 
 export async function POST(request) {
   try {
-    const body = await request.json();
+    const rawBody = await request.json(); const body = sanitizeObject(rawBody);
     const {
       landlordEmail,
       landlordId,

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { sanitizeObject, safeErrorResponse } from '@/lib/security';
 import { generateContestationPDF } from '../../../../lib/pdf-engine.js';
 
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
@@ -46,7 +47,7 @@ function calculateFairRent(data) {
 
 export async function POST(request) {
   try {
-    const data = await request.json();
+    const rawData = await request.json(); const data = sanitizeObject(rawData);
     
     if (!data.currentRent || !data.canton) {
       return NextResponse.json({ error: 'Loyer actuel et canton requis' }, { status: 400 });

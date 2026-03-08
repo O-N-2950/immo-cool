@@ -8,10 +8,12 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { hashPassword, generateToken } from '@/lib/auth';
 import { calculateTenantScore } from '@/lib/matching';
+import { validateRegistrationData, sanitizeObject, safeErrorResponse } from '@/lib/security';
 
 export async function POST(request) {
   try {
-    const body = await request.json();
+    const rawBody = await request.json();
+    const body = sanitizeObject(rawBody); // XSS sanitization
     const {
       email, password, role, firstName, lastName, phone,
       nationality, permitType, birthDate,
@@ -22,15 +24,10 @@ export async function POST(request) {
       companyName, specialties, cantons, hourlyRate, description,
     } = body;
 
-    if (!email || !password || !role || !firstName || !lastName) {
-      return NextResponse.json(
-        { error: 'email, password, role, firstName, lastName sont requis' },
-        { status: 400 }
-      );
-    }
-
-    if (!['LANDLORD', 'TENANT', 'ARTISAN'].includes(role)) {
-      return NextResponse.json({ error: 'Role invalide' }, { status: 400 });
+    // Input validation (#5, #8, #9)
+    const validation = validateRegistrationData(body);
+    if (!validation.valid) {
+      return NextResponse.json({ error: validation.errors.join(', ') }, { status: 400 });
     }
 
     // Check existing
@@ -126,7 +123,7 @@ export async function POST(request) {
       token,
     }, { status: 201 });
   } catch (error) {
-    console.error('[immo.cool] Register error:', error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const safe = safeErrorResponse(error);
+    return NextResponse.json({ error: safe.error }, { status: safe.status });
   }
 }

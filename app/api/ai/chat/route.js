@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { sanitizeString, safeErrorResponse } from '@/lib/security';
 
 // Server-side — API key never exposed to client
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
@@ -27,7 +28,9 @@ RÈGLES:
 
 export async function POST(request) {
   try {
-    const { message, lang = 'fr' } = await request.json();
+    const body = await request.json();
+    const message = sanitizeString(body.message || '').slice(0, 2000);
+    const lang = (body.lang || 'fr').slice(0, 5);
     
     if (!message || typeof message !== 'string' || message.length > 2000) {
       return NextResponse.json({ error: 'Message invalide' }, { status: 400 });

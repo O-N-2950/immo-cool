@@ -9,6 +9,7 @@
  */
 
 import { NextResponse } from 'next/server';
+import { sanitizeObject, safeErrorResponse } from '@/lib/security';
 import stripe, { createMetadata } from '@/lib/stripe';
 
 export async function POST(request) {

@@ -8,6 +8,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getCantonRules, requiresInitialRentForm, getComplianceChecklist } from '@/lib/cantonal-rules';
+import { validatePropertyData, sanitizeObject, sanitizeString, isValidCanton, safeErrorResponse } from '@/lib/security';
 
 export async function GET(request) {
   try {
@@ -17,12 +18,23 @@ export async function GET(request) {
     const minRooms = searchParams.get('minRooms');
     const maxRent = searchParams.get('maxRent');
     const status = searchParams.get('status') || 'ACTIVE';
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '20');
+    const page = Math.max(1, Math.min(100, parseInt(searchParams.get('page') || '1')));
+    const limit = Math.max(1, Math.min(50, parseInt(searchParams.get('limit') || '20')));
+
+    // Validate filters (#5, #8, #9)
+    if (canton && !isValidCanton(canton)) {
+      return NextResponse.json({ error: 'Canton invalide' }, { status: 400 });
+    }
+    if (maxRent && (isNaN(Number(maxRent)) || Number(maxRent) < 0)) {
+      return NextResponse.json({ error: 'maxRent doit être un nombre positif' }, { status: 400 });
+    }
+    if (minRooms && (isNaN(Number(minRooms)) || Number(minRooms) < 0)) {
+      return NextResponse.json({ error: 'minRooms doit être un nombre positif' }, { status: 400 });
+    }
 
     const where = { status };
     if (canton) where.canton = canton.toUpperCase();
-    if (city) where.city = { contains: city, mode: 'insensitive' };
+    if (city) where.city = { contains: sanitizeString(city).slice(0, 100), mode: 'insensitive' };
     if (minRooms) where.rooms = { gte: parseFloat(minRooms) };
     if (maxRent) where.monthlyRent = { lte: parseFloat(maxRent) };
 
@@ -51,14 +63,15 @@ export async function GET(request) {
       pagination: { page, limit, total, pages: Math.ceil(total / limit) },
     });
   } catch (error) {
-    console.error('[immo.cool] Properties GET error:', error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const safe = safeErrorResponse(error);
+    return NextResponse.json({ error: safe.error }, { status: safe.status });
   }
 }
 
 export async function POST(request) {
   try {
-    const body = await request.json();
+    const rawBody = await request.json();
+    const body = sanitizeObject(rawBody); // XSS sanitization (#6, #10)
     const {
       ownerId, type, title, description,
       street, streetNumber, postalCode, city, canton, floor,
@@ -72,6 +85,12 @@ export async function POST(request) {
         { error: 'Champs obligatoires manquants: ownerId, monthlyRent, canton, rooms, street, city, postalCode' },
         { status: 400 }
       );
+    }
+
+    // Validate property data (#5, #8, #9, #10)
+    const validation = validatePropertyData({ monthlyRent, surface, rooms, canton, npa: postalCode, street, city, description, title });
+    if (!validation.valid) {
+      return NextResponse.json({ error: validation.errors.join(', ') }, { status: 400 });
     }
 
     // Validate canton
@@ -135,7 +154,7 @@ export async function POST(request) {
       },
     }, { status: 201 });
   } catch (error) {
-    console.error('[immo.cool] Properties POST error:', error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const safe = safeErrorResponse(error);
+    return NextResponse.json({ error: safe.error }, { status: safe.status });
   }
 }

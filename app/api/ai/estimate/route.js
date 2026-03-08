@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { sanitizeObject, safeErrorResponse } from '@/lib/security';
 
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
 

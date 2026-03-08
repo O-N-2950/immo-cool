@@ -225,6 +225,10 @@ model Property {
   @@index([city, status])
   @@index([monthlyRent])
   @@index([rooms])
+  @@index([ownerId])
+  @@index([surface])
+  @@index([status, availableFrom])
+  @@index([postalCode])
 }
 
 // ============================================
@@ -465,6 +469,7 @@ model SearchRequest {
   @@index([canton, status])
   @@index([status, expiresAt])
   @@index([email])
+  @@index([createdAt])
 }
 
 // ============================================================

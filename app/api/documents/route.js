@@ -8,6 +8,7 @@
  */
 
 import { NextResponse } from 'next/server';
+import { sanitizeObject, safeErrorResponse } from '@/lib/security';
 import { generateBailHabitation } from '@/lib/documents/bail-habitation';
 import { generateEtatDesLieux } from '@/lib/documents/etat-des-lieux';
 import { generateQuittanceCles } from '@/lib/documents/quittance-cles';
@@ -15,7 +16,7 @@ import { verifierResiliation, generateLettreAccompagnement } from '@/lib/documen
 
 export async function POST(request) {
   try {
-    const body = await request.json();
+    const rawBody = await request.json(); const body = sanitizeObject(rawBody);
     const { type, data } = body;
 
     if (!type) {

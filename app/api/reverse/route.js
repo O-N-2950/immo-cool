@@ -4,6 +4,7 @@
  */
 
 import { NextResponse } from 'next/server';
+import { sanitizeObject, safeErrorResponse } from '@/lib/security';
 import prisma from '../../../lib/prisma.js';
 
 // GET — Liste des demandes actives
@@ -50,7 +51,7 @@ export async function GET(request) {
 // POST — Publier une demande
 export async function POST(request) {
   try {
-    const body = await request.json();
+    const rawBody = await request.json(); const body = sanitizeObject(rawBody);
     const { email, phone, firstName, canton, city, rooms, maxBudget, description, moveInDate } = body;
 
     // Validation

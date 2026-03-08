@@ -6,6 +6,7 @@
  */
 
 import { NextResponse } from 'next/server';
+import { sanitizeObject, safeErrorResponse } from '@/lib/security';
 import prisma from '@/lib/prisma';
 import { rankTenants, findBestProperties, calculateTenantScore } from '@/lib/matching';
 
@@ -94,7 +95,7 @@ export async function GET(request) {
     return NextResponse.json({ error: 'Paramètre propertyId ou tenantId requis' }, { status: 400 });
   } catch (error) {
     console.error('[immo.cool] Matching error:', error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const safe = safeErrorResponse(error); return NextResponse.json({ error: safe.error }, { status: safe.status });
   }
 }
 
@@ -154,6 +155,6 @@ export async function POST(request) {
     return NextResponse.json({ application }, { status: 201 });
   } catch (error) {
     console.error('[immo.cool] Application error:', error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const safe = safeErrorResponse(error); return NextResponse.json({ error: safe.error }, { status: safe.status });
   }
 }
