@@ -1,121 +1,118 @@
-# TODO — immo.cool
-## Dernière mise à jour : 6 mars 2026
+# immo.cool — TODO
+> Mis à jour: 12 mars 2026
 
----
+## ✅ TERMINÉ
 
-## ✅ FAIT (v3.2)
-- [x] 6 outils gratuits frontend + backend
-- [x] Moteur PDF unifié (bail, résiliation, contestation, EDL)
-- [x] 3 endpoints IA (chat, estimation, contestation)
-- [x] Reverse marketplace /demande avec BDD
-- [x] Anti-crash WinWin V2 (instrumentation, restart x10, healthcheck)
-- [x] Middleware sécurité (redirect, headers, auth gate)
-- [x] Error boundaries (global-error, not-found)
-- [x] 26 env vars configurées Railway
-- [x] Prisma migrations auto au démarrage
-- [x] SEO: sitemap 33 URLs, layouts, metadata
-- [x] i18n FR/DE (80+ clés, 25 villes)
-- [x] Landing page complète (~1750 lignes)
-- [x] Build clean 42 routes, 0 erreurs
+### Infrastructure
+- [x] Next.js 15 sur Railway (standalone, PostgreSQL)
+- [x] DNS immocool.ch + www.immocool.ch → Railway
+- [x] Auto-deploy GitHub → Railway
+- [x] Prisma 11 modèles, 3 migrations
+- [x] Health check complet (/api/health)
+- [x] start.sh avec migrations auto au démarrage
 
----
+### Sécurité (audit 15/15)
+- [x] JWT complet (jose, edge-compatible)
+- [x] Rate limiting (5/min auth, 10/min AI, 60/min général)
+- [x] CORS restrictif (whitelist 5 domaines)
+- [x] XSS sanitization sur tous les POST
+- [x] Validation Swiss-specific (NPA, cantons, prix, surface)
+- [x] Headers HSTS, CSP, X-Frame DENY
+- [x] Safe error responses (pas de stack traces)
+- [x] DB indexes sur colonnes de recherche
 
-## 🔴 PHASE 1 — PRIORITAIRE (clients existants)
+### Auth
+- [x] Login/Register pages dédiées
+- [x] Dashboard authentifié (fetch /api/auth/me)
+- [x] Cookies HTTP-only (immo_session, 7j)
+- [x] Landing page redirige vers vraies pages auth
 
-### Auth & Inscription
-- [ ] Page /login avec formulaire email/mot de passe
-- [ ] Page /register avec choix rôle (propriétaire/locataire/artisan)
-- [ ] API /api/auth/me — retour profil utilisateur connecté
-- [ ] API /api/auth/logout — suppression cookie
-- [ ] Middleware auth complet (vérif JWT dans routes protégées)
-- [ ] Page /dashboard — redirection selon rôle
+### IA
+- [x] Chatbot juridique (droit du bail 26 cantons)
+- [x] Estimateur de loyer IA (données marché + Claude)
+- [x] Contestation de loyer (calcul hypo + IPC + analyse IA)
+- [x] ANTHROPIC_API_KEY configurée en prod
 
-### Dashboard Propriétaire
-- [ ] Connecter ImmoCool.jsx wizard création bien → POST /api/properties
-- [ ] Liste de mes biens (GET /api/properties?owner=me)
-- [ ] Voir les candidatures reçues
-- [ ] Stripe Connect onboarding (flux réel, pas mock)
-- [ ] Paiement commission 50% après signature bail
+### Outils gratuits (6 machines d'acquisition)
+- [x] Générateur de bail PDF
+- [x] Résiliation assistée + calcul délais
+- [x] Contestation loyer IA + PDF
+- [x] Calculateur loyer IA
+- [x] État des lieux digital
+- [x] Assistant IA chatbot
 
-### Dashboard Locataire
-- [ ] Page profil locataire (scoring, vérification)
-- [ ] Candidater à un bien
-- [ ] Suivi de mes candidatures
-- [ ] Reverse marketplace : mes demandes actives
+### Frontend
+- [x] Landing page showcase (1740 lignes)
+- [x] 6 pages outils connectées aux API
+- [x] Reverse marketplace /demande (fetch /api/reverse)
+- [x] SEO: sitemap 35 URLs, robots.txt, meta tags, layouts
+- [x] i18n FR/DE (25 villes)
+- [x] Stripe Connect architecture prête
 
-### Connecter Frontend → API
-- [ ] Landing page : remplacer données mock par vrais appels API
-- [ ] /demande : charger les demandes depuis /api/reverse (plus de seed data)
-- [ ] Outils : connecter génération PDF réelle (download du fichier)
+## 🔴 PHASE 1 — Priorité haute
 
-### Stripe Production
-- [ ] Créer les produits Stripe (commission, documents premium)
-- [ ] Flux paiement commission propriétaire
-- [ ] Webhook Stripe fonctionnel (signature + traitement)
-- [ ] Page succès/annulation paiement
+### Stripe Connect end-to-end
+- [ ] Tester le flux complet: inscription → KYC → publication → paiement
+- [ ] Vérifier les webhooks en prod (checkout.session.completed)
+- [ ] Ajouter page de succès/échec paiement
 
----
+### Google Search Console
+- [ ] Vérifier ownership www.immocool.ch
+- [ ] Soumettre sitemap.xml
+- [ ] Vérifier indexation des 35 URLs
+- [ ] Configurer analytics (Vercel Analytics ou Plausible)
 
-## 🟡 PHASE 2 — GROWTH
+### Polish
+- [ ] Icônes PWA (icon-192.png, icon-512.png)
+- [ ] Manifest.json PWA
+- [ ] Favicon personnalisé
+- [ ] OpenGraph images pour partage réseaux sociaux
 
-### SEO & Acquisition
-- [ ] Google Search Console → soumettre sitemap
-- [ ] Google Analytics / Plausible
-- [ ] Générer icônes PWA (icon-192.png, icon-512.png)
-- [ ] Méta tags Open Graph avec images
-- [ ] Blog /articles pour SEO longue traîne
+## 🟡 PHASE 2 — Scale
 
 ### Aspirateur d'annonces
-- [ ] Scraper Immoscout24, Homegate, Anibis
-- [ ] Stockage annonces en BDD (dédup par adresse)
-- [ ] Matching automatique annonces ↔ demandes locataires
-- [ ] Alertes email pour locataires
-
-### Notifications
-- [ ] Email transactionnel (Resend/Sendgrid)
-- [ ] Notification nouvelle candidature → propriétaire
-- [ ] Notification réponse → locataire
-- [ ] Rappel expiration demande (J-7)
+- [ ] Scraper Homegate/Comparis/ImmoScout
+- [ ] Pipeline n8n pour ingestion automatique
+- [ ] Déduplication et enrichissement IA
 
 ### WhatsApp Bot
 - [ ] Intégration WhatsApp Business API
-- [ ] Chatbot droit du bail via WhatsApp
-- [ ] Alertes nouvelles annonces par WhatsApp
-
----
-
-## 🔵 PHASE 3 — SCALE
+- [ ] Workflow n8n: demande locataire → matching → notification
+- [ ] Alertes propriétaires par WhatsApp
 
 ### Widget Embed
-- [ ] Script embed pour sites de régies
-- [ ] Calculateur de loyer en widget
-- [ ] Formulaire de candidature embed
+- [ ] Composant JS embeddable pour sites tiers
+- [ ] Affiche les demandes locataires
+- [ ] Lead generation pour propriétaires
 
-### SaaS B2B
-- [ ] Dashboard régie (multi-propriétaires)
-- [ ] API management pour régies
-- [ ] Abonnement mensuel Stripe
+### Email Nurturing
+- [ ] Capture email sur chaque outil
+- [ ] Séquences automatiques (welcome, relance, upsell)
+- [ ] Templates email transactionnels
 
-### Data & Analytics
-- [ ] Dashboard analytics (visites, conversions)
-- [ ] Export data par canton
-- [ ] Indices de marché automatisés
+## 🟠 PHASE 3 — Monétisation avancée
 
----
+### SaaS B2B Régies
+- [ ] Dashboard multi-propriétaires
+- [ ] Gestion de parc immobilier
+- [ ] Reporting et analytics
+- [ ] API pour intégration ERP régies
 
-## 🟣 PHASE 4 — EXPANSION
+### Data Monopole
+- [ ] Stats loyers par commune/canton
+- [ ] Rapports de marché automatisés
+- [ ] API data pour partenaires
 
-- [ ] Expansion multi-cantons (VD, GE, BE, ZH)
-- [ ] Contestation premium avec avocat partenaire
-- [ ] Assurance loyer intégrée (affiliation)
-- [ ] App mobile PWA complète
-- [ ] Signature électronique légale (Skribble)
+### Affiliations
+- [ ] GoCaution (garantie de loyer)
+- [ ] Assurance ménage
+- [ ] Services de déménagement
+- [ ] Rénovation / aménagement
 
----
+## 🔵 PHASE 4 — Expansion
 
-## Points d'attention
-- ⚠️ Stripe: clés TEST, passer en LIVE avant premiers paiements réels
-- ⚠️ Disclaimers juridiques sur tous les outils (pas un substitut d'avocat)
-- ⚠️ RGPD/LPD : politique de confidentialité à compléter
-- ⚠️ 26 cantons = 26 règles → cantonal-rules.js à enrichir progressivement
-- ⚠️ Taux hypothécaire et IPC : vérifier régulièrement les valeurs OFL/OFS
+- [ ] Multi-cantons (GE, VD, NE, FR en priorité)
+- [ ] Multilingue complet (IT, EN)
+- [ ] App mobile native (React Native)
+- [ ] Marketplace artisans avec ratings
+- [ ] Gestion comptable automatisée

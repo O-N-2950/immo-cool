@@ -1692,10 +1692,12 @@ export default function ImmoCool({initialPage="landing",initialLang="fr",initial
   useEffect(()=>{if(initialLang&&initialLang!=="fr")setLang(initialLang)},[initialLang]);
   
   const nav = useCallback((p)=>{
+    if(p==="login"){window.location.href="/login";return;}
+    if(p==="register"){window.location.href="/register";return;}
+    if(p==="dashboard"||p==="tenant-dash"){window.location.href="/dashboard";return;}
     setTransition(false);
     setTimeout(()=>{
       setPage(p);
-      if(p==="dashboard")setSub("overview");
       setTimeout(()=>setTransition(true),50);
     },200);
   },[]);
