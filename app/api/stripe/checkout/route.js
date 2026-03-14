@@ -78,8 +78,8 @@ export async function POST(request) {
         monthly_rent: String(monthlyRent),
         commission_rate: '0.50',
       }),
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/owner?payment=success&lease=${leaseId}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/owner?payment=cancelled&lease=${leaseId}`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.immocool.ch'}/dashboard?payment=success&lease=${leaseId}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.immocool.ch'}/dashboard?payment=cancelled&lease=${leaseId}`,
     });
 
     return NextResponse.json({
@@ -88,10 +88,6 @@ export async function POST(request) {
     });
 
   } catch (error) {
-    console.error('[immo.cool] Checkout error:', error.message);
-    return NextResponse.json(
-      { error: error.message },
-      { status: 500 }
-    );
+    const safe = safeErrorResponse(error); return NextResponse.json({ error: safe.error }, { status: safe.status });
   }
 }

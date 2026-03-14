@@ -42,8 +42,8 @@ export async function POST(request) {
     // Create onboarding link
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
-      refresh_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/owner?stripe=refresh`,
-      return_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/owner?stripe=success&account=${account.id}`,
+      refresh_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.immocool.ch'}/dashboard?stripe=refresh`,
+      return_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.immocool.ch'}/dashboard?stripe=success&account=${account.id}`,
       type: 'account_onboarding',
     });
 

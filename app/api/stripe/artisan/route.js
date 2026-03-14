@@ -91,8 +91,8 @@ export async function POST(request) {
         platform_fee: String(platformFee / 100),
         property_id: propertyId || '',
       }),
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/tenant?artisan=success`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/tenant?artisan=cancelled`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.immocool.ch'}/dashboard?artisan=success`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.immocool.ch'}/dashboard?artisan=cancelled`,
     });
 
     return NextResponse.json({
