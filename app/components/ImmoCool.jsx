@@ -441,7 +441,7 @@ const Landing = ({nav,lang="fr",setLang,t,mobile,showEstimator,setShowEstimator}
 
       <div style={{borderTop:`1px solid ${C.border}`,padding:"32px 48px",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
         <div style={{display:"flex",alignItems:"center"}}><span style={{fontFamily:F.display,fontSize:20,fontWeight:600}}>immo</span><span style={{fontFamily:F.display,fontSize:20,fontWeight:600,color:C.gold}}>.</span><span style={{fontFamily:F.display,fontSize:20,fontWeight:600}}>cool</span><span style={{fontFamily:F.body,fontSize:12,color:C.textMuted,marginLeft:12}}>© 2026</span></div>
-        <div style={{display:"flex",gap:16,flexWrap:"wrap"}}>{[{l:"Outils gratuits",h:"/outils"},{l:"Demandes locataires",h:"/demande"},{l:"CGV",h:"#"},{l:"Confidentialité",h:"#"},{l:"Contact",h:"#"}].map(x=>(<a key={x.l} href={x.h} style={{fontFamily:F.body,fontSize:12,color:C.textMuted,textDecoration:"none"}}>{x.l}</a>))}</div>
+        <div style={{display:"flex",gap:16,flexWrap:"wrap"}}>{[{l:"Outils gratuits",h:"/outils"},{l:"Demandes locataires",h:"/demande"},{l:"CGV",h:"/cgv"},{l:"Confidentialité",h:"/confidentialite"},{l:"Contact",h:"mailto:contact@immocool.ch"}].map(x=>(<a key={x.l} href={x.h} style={{fontFamily:F.body,fontSize:12,color:C.textMuted,textDecoration:"none"}}>{x.l}</a>))}</div>
       </div>
     </div>
   );
