@@ -1,5 +1,5 @@
 # immo.cool — TODO
-> Mis à jour: 12 mars 2026
+> Mis à jour: 14 mars 2026
 
 ## ✅ TERMINÉ
 
@@ -9,6 +9,7 @@
 - [x] Auto-deploy GitHub → Railway
 - [x] Prisma 11 modèles, 3 migrations
 - [x] Health check complet (/api/health)
+- [x] Suppression ancien PostgreSQL mort (nettoyage Railway)
 - [x] start.sh avec migrations auto au démarrage
 
 ### Sécurité (audit 15/15)
@@ -26,6 +27,11 @@
 - [x] Dashboard authentifié (fetch /api/auth/me)
 - [x] Cookies HTTP-only (immo_session, 7j)
 - [x] Landing page redirige vers vraies pages auth
+- [x] Dashboard enrichi (4 tabs: aperçu/biens/demandes/outils)
+- [x] Dashboard: liste biens réelle depuis API
+- [x] Dashboard: demandes locataires depuis API
+- [x] Dashboard: Stripe Connect CTA + payment banners
+- [x] Dashboard: stats artisan
 
 ### IA
 - [x] Chatbot juridique (droit du bail 26 cantons)
@@ -62,10 +68,15 @@
 - [ ] Vérifier indexation des 35 URLs
 - [ ] Configurer analytics (Vercel Analytics ou Plausible)
 
-### Polish
-- [ ] Icônes PWA (icon-192.png, icon-512.png)
-- [ ] Manifest.json PWA
-- [ ] Favicon personnalisé
+### Legal
+- [x] Pages CGV (Conditions générales de vente)
+- [x] Politique de confidentialité (LPD suisse)
+- [x] Footer liens réels (CGV, confidentialité, contact)
+
+### PWA
+- [x] Icônes PWA (icon-192.png, icon-512.png)
+- [x] Manifest.json PWA
+- [x] Favicon personnalisé (SVG + PNG 32/192/512 + apple-touch-icon)
 - [ ] OpenGraph images pour partage réseaux sociaux
 
 ## 🟡 PHASE 2 — Scale

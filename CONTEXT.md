@@ -1,5 +1,5 @@
 # immo.cool — CONTEXT.md v5
-> Dernière mise à jour: 12 mars 2026
+> Dernière mise à jour: 14 mars 2026
 > La première régie 100% IA de Suisse
 
 ## Vision
@@ -42,7 +42,7 @@ ANTHROPIC_API_KEY, STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY, STRIPE_WEBHOOK_SEC
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, NEXT_PUBLIC_APP_URL, NODE_ENV, APP_NAME,
 APP_DISPLAY_NAME, STRIPE_PRODUCT_PREFIX, RAILWAY_* (auto-injectées)
 
-## Inventaire des routes (47 routes, 0 erreur)
+## Inventaire des routes (49 routes, 0 erreur)
 
 ### Pages publiques (14)
 - `/` — Landing page showcase (ImmoCool.jsx ~1740 lignes)
@@ -57,6 +57,8 @@ APP_DISPLAY_NAME, STRIPE_PRODUCT_PREFIX, RAILWAY_* (auto-injectées)
 - `/outils/etat-des-lieux` — État des lieux digital
 - `/outils/assistant-ia` — Chatbot droit du bail
 - `/demande` — Reverse marketplace (locataires publient, propriétaires proposent)
+- `/cgv` — Conditions générales de vente (CO suisse)
+- `/confidentialite` — Politique de confidentialité (LPD nLPD 2023)
 - `/appartements/[city]` — SEO 13 villes FR
 - `/wohnungen/[city]` — SEO 12 villes DE
 
@@ -85,10 +87,10 @@ APP_DISPLAY_NAME, STRIPE_PRODUCT_PREFIX, RAILWAY_* (auto-injectées)
 - `/api/stripe/webhook` — Webhooks Stripe (signature vérifiée)
 
 ### Fichiers utilitaires
-- `/sitemap.xml` — 35 URLs (auto-généré)
+- `/sitemap.xml` — 38 URLs (auto-généré)
 - `/robots.txt` — Allow / sauf /api/ et /dashboard/
 
-## Sécurité (audit 15/15 corrigé — 12 mars 2026)
+## Sécurité (audit 15/15 corrigé — 14 mars 2026)
 1. ✅ Secrets en variables d'environnement
 2. ✅ JWT complet (jose, edge-compatible, vérification dans middleware)
 3. ✅ Rate limiting (5/min auth, 10/min AI, 15/min tools, 60/min général)
